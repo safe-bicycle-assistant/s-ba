@@ -14,6 +14,7 @@ import android.widget.ListView;
 import com.safe_bicycle_assistant.s_ba.R;
 import com.safe_bicycle_assistant.s_ba.db_helpers.ManagementDB;
 import com.safe_bicycle_assistant.s_ba.db_helpers.RidingDB;
+import com.safe_bicycle_assistant.s_ba.uis.ManagementLogAdapter;
 
 public class ManagementLogFragment extends Fragment {
 
@@ -30,8 +31,8 @@ public class ManagementLogFragment extends Fragment {
         managementDatabaseHelper.onCreate(db);
         for(int i = 0; i< 10; i++)
             managementDatabaseHelper.insert(System.currentTimeMillis(),ManagementDB.BRAKES | ManagementDB.TYRES);
-
-        listView.setAdapter(new ArrayAdapter<String>(getContext(),android.R.layout.simple_list_item_1,managementDatabaseHelper.getAllData()));
+        listView.setAdapter(new ManagementLogAdapter(getContext(),managementDatabaseHelper.getAllDateToCursor(),true));
+//        listView.setAdapter(new ArrayAdapter<String>(getContext(),android.R.layout.simple_list_item_1,managementDatabaseHelper.getAllData()));
     }
 
     @Override

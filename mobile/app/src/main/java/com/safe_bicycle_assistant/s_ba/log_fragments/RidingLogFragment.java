@@ -13,6 +13,7 @@ import android.widget.ListView;
 
 import com.safe_bicycle_assistant.s_ba.R;
 import com.safe_bicycle_assistant.s_ba.db_helpers.RidingDB;
+import com.safe_bicycle_assistant.s_ba.uis.RidingLogAdapter;
 
 public class RidingLogFragment extends Fragment {
     static RidingDB ridingDatabaseHelper;
@@ -29,7 +30,8 @@ public class RidingLogFragment extends Fragment {
         for(int i = 0; i< 10; i++)
             ridingDatabaseHelper.insert(System.currentTimeMillis(),i+1,30.34,90.04);
 
-        listView.setAdapter(new ArrayAdapter<String>(getContext(),android.R.layout.simple_list_item_1,ridingDatabaseHelper.getAllData()));
+        listView.setAdapter(new RidingLogAdapter(getContext(), ridingDatabaseHelper.getAllDateToCursor(), true));
+//        listView.setAdapter(new ArrayAdapter<String>(getContext(),R.layout.riding_log_listview,ridingDatabaseHelper.getAllData()));
     }
 
     @Override

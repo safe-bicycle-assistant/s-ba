@@ -38,6 +38,13 @@ public class ManagementDB extends SQLiteOpenHelper {
         db.close();
 
     }
+
+    public Cursor getAllDateToCursor() {
+        String query = "select *,1 _id from "+ TABLE_NAME;
+        SQLiteDatabase db = getWritableDatabase();
+        Cursor c = db.rawQuery(query,null);
+        return c;
+    }
     public List<String> getAllData()
     {
         String query = "select * from "+ TABLE_NAME;
