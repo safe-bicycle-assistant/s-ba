@@ -148,8 +148,9 @@ void* cadence_thd(void* data)
     srand(time(NULL));
     while(1)
     {
+        sleep(0.5);
         // while(GPIORead(17) == 1);
-        float a = (float)rand() / 300;
+        float a = (float)rand() / 300000;
         // float duration = ((float)end-start)/CLOCKS_PER_SEC;
         // float rpm = 50/duration;
         datas->cadence = a;
