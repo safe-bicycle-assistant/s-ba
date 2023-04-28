@@ -19,8 +19,9 @@
 #define LOW 0
 #define HIGH 1
 
-void* write_thd(void* socket);
-void* read_thd(void* socket);
+void* write_thd(void* data);
+void* read_thd(void* data);
+void* cadence_thd(void* data);
 void error_handling(char* msg)
 {
 	fprintf(stderr,"%s\n",msg);
