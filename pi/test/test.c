@@ -130,14 +130,14 @@ static int GPIORead(int pin)
 
 int main(void)
 {
-    GPIOExport(17);
+    GPIOExport(14);
     sleep(0.5);
-    GPIODirection(17,IN);
+    GPIODirection(14,IN);
     while(1)
     {
         // while(GPIORead(17) == 1);
         clock_t start = clock();
-        printf("%d\n",GPIORead(17));//(float)1.0;
+        printf("%d\n",GPIORead(14));//(float)1.0;
         // printf("%d",GPIOExport(17));
         clock_t end = clock();
         // float duration = ((float)end-start)/CLOCKS_PER_SEC;
