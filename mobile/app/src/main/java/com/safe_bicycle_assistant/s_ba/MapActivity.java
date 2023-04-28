@@ -188,7 +188,14 @@ public class MapActivity extends AppCompatActivity implements MapBottomSheet.Map
     private List<Address> geocode(String locationName) {
         try {
             GeocoderNominatim geocoder = new GeocoderNominatim(Locale.KOREAN, getPackageName());
-            return geocoder.getFromLocationName(locationName, 10);
+            return geocoder.getFromLocationName(
+                    locationName,
+                    15,
+                    currentPoint.getLatitude() - 3,
+                    currentPoint.getLongitude() - 3,
+                    currentPoint.getLatitude() + 3,
+                    currentPoint.getLongitude() + 3
+            );
         } catch (Exception e) {
             return Collections.emptyList();
         }
