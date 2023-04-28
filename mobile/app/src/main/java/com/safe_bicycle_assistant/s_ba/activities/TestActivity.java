@@ -78,6 +78,7 @@ public class TestActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Log.d(TAG, "onDestroy: ");
         try {
             mConnectionServiceAIDL.destroyService();
         } catch (RemoteException e) {

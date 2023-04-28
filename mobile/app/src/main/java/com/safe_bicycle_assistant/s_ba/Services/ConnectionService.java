@@ -37,6 +37,7 @@ public class ConnectionService extends Service {
         @Override
         public void destroyService() throws RemoteException {
             Log.d(TAG, "destroyService: ");
+
             networkThread.interrupt();
         }
         @Override
@@ -58,8 +59,8 @@ public class ConnectionService extends Service {
 
     @Override
     public void onCreate() {
-//        this.ip = "210.107.198.230";
-        this.ip = "192.168.0.7";
+        this.ip = "210.107.198.230";
+//        this.ip = "192.168.0.7";
         this.port = 33333;
         networkThread = new Thread(new NetworkThreadRunnable(ip,port));
         networkThread.start();
@@ -89,6 +90,10 @@ public class ConnectionService extends Service {
                 try {
                     InputStream inputStream = socket.getInputStream();
                     byte[] buffer = new byte[BUFFER_SIZE];
+                    while(inputStream.available() == 0)
+                    {
+                        Thread.sleep(100);
+                    }
                     inputStream.read(buffer);
                     ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(buffer);
                     DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
@@ -110,7 +115,7 @@ public class ConnectionService extends Service {
                     int detection = dataInputStream.readInt();
                     Log.d(TAG, "run: size of Float");
                     Log.d(TAG, "run: cadence " + cadence + " detection : " + detection);
-                    Thread.sleep(100);
+
                     activityAIDL.setTexts(cadence,detection);
 //                    new Handler(Looper.getMainLooper()).post(new Runnable() {
 //                        @Override
@@ -126,6 +131,7 @@ public class ConnectionService extends Service {
                     Log.d(TAG, "run: Received Interrupt");
                     try {
                         socket.close();
+                        return;
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }

@@ -5,7 +5,6 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <linux/tcp.h>
 
 void* write_thd(void* socket);
 void* read_thd(void* socket);
@@ -14,17 +13,9 @@ void error_handling(char* msg)
 	fprintf(stderr,"%s\n",msg);
 	return;
 }
-typedef struct data{
-    float cadence;
-    int detection;
-    
-}Data;
-
-int* sock;
+int sock ;
 int main(void)
 {
-    int status;
-    pthread_t p_thread[2];
     // printf("sizeof float int %d %d\n",sizeof(float), sizeof(int));
 	char port[]="33333";
 	char msg[100];
@@ -32,7 +23,6 @@ int main(void)
 	struct sockaddr_in serv_addr,clnt_addr;
 	socklen_t clnt_addr_size;
 	serv_sock = socket(PF_INET, SOCK_STREAM,0);
-    
     if(serv_sock == -1)
             error_handling("socket() error");
     memset(&serv_addr,0,sizeof(serv_addr));
@@ -45,34 +35,19 @@ int main(void)
             error_handling("listen() error");
     if(clnt_sock<0)
     {
-        int started = 0;
-        while(1)
-        {
+        while(1){
             clnt_addr_size = sizeof(clnt_addr);
             clnt_sock = accept(serv_sock, (struct sockaddr*)&clnt_addr,&clnt_addr_size);
             if(clnt_sock == -1)
                     error_handling("accept() error");
-            int opt_val = 1;
-            setsockopt(clnt_sock,IPPROTO_TCP,TCP_NODELAY,&opt_val,sizeof(opt_val));
-
-            sock = &clnt_sock;
-            Data data;
-            data.cadence = 10.3;
-            printf("connection established\n");
-            
-            
-            pthread_create(&p_thread[0],NULL,read_thd,(void*)&data);
-            if(started == 0)
-            {
-                pthread_create(&p_thread[1],NULL,write_thd,(void*)&data);
-            }
-            
-
-            
+            sock = clnt_sock;
+            printf("connection established\n");    
+            pthread_t p_thread[1];
+            int status;
+            pthread_create(&p_thread[0],NULL,write_thd,(void*)&sock);    
         }
     }
-    pthread_join(p_thread[0],(void**)&status);
-    pthread_join(p_thread[1],(void**)&status);
+	
 	/*
 	char port[6]="5672";
 	char msg[100];
@@ -117,84 +92,74 @@ int main(void)
 		write(sock,msg,sizeof(msg));
 	}
 	*/
-	
+	pthread_t p_thread[1];
+	int status;
+	pthread_create(&p_thread[0],NULL,write_thd,(void*)&sock);
+	// pthread_create(&p_thread[1],NULL,read_thd,(void*)&sock);
+
+	pthread_join(p_thread[0],(void**)&status);
+	// pthread_join(p_thread[1],(void**)&status);
 
 	//printf("closing socket\n");
 	//close(sock);
 	return 0;
 }
-void* write_thd(void* data)
+void* write_thd(void* socket)
 {
-	// int* sock = (int*)socket;
-    Data* datas = data;
+	int* sock = (int*)socket;
+    float cadencebit = 10.3;
+    int detectionbit = 30;
+    char buffer[100] = {0,};
     
+    buffer[3] = *((int*)(&cadencebit)) ;
+	buffer[2] = *((int*)(&cadencebit)) >> 8;
+	buffer[1] = *((int*)(&cadencebit)) >> 16;
+	buffer[0] = *((int*)(&cadencebit)) >> 24;
+
+	buffer[7] = *((int*)(&detectionbit));
+	buffer[6] = *((int*)(&detectionbit)) >> 8;
+	buffer[5] = *((int*)(&detectionbit)) >> 16;
+	buffer[4] = *((int*)(&detectionbit)) >> 24;
     // memcpy(buffer,&cadencebit,sizeof(cadencebit));
     // memcpy(buffer+sizeof(cadencebit),&detectionbit,sizeof(detectionbit));
 	//sprintf(buffer,"%.5f,%d");
     char msg[100];
 	while(1)
 	{
-        float cadencebit = datas->cadence;
-        int detectionbit = datas->detection;
-        char buffer[100] = {0,};
+		scanf("%s",msg);
         
-        buffer[3] = *((int*)(&cadencebit)) ;
-        buffer[2] = *((int*)(&cadencebit)) >> 8;
-        buffer[1] = *((int*)(&cadencebit)) >> 16;
-        buffer[0] = *((int*)(&cadencebit)) >> 24;
-
-        buffer[7] = *((int*)(&detectionbit));
-        buffer[6] = *((int*)(&detectionbit)) >> 8;
-        buffer[5] = *((int*)(&detectionbit)) >> 16;
-        buffer[4] = *((int*)(&detectionbit)) >> 24;
-		sleep(1);
+		if(strcmp("s",msg)==0)
+		{
 			//send
             // send(*sock,&cadencebit,sizeof(cadencebit),0);
             // send(*sock,&detectionbit,sizeof(detectionbit),0);
             // for(int i = 0; i< 100; i++)
             //     printf("%d",msg[i]);
             // printf("\n");
-        write(*sock,buffer,sizeof(buffer));
-        // FILE* fd = sock;
-        // fflush(fd);
-        
-        // fflush(*sock);
+			write(*sock,buffer,sizeof(buffer));
             // write(*sock,&detectionbit,sizeof(detectionbit));
 
-		
+		}
 		// write(*sock,msg,sizeof(msg));
-		printf("Sent data to server : [%f,%d]\n",cadencebit,detectionbit);
+		printf("Sent data to server : %s\n",msg);
 	}
 	close(*sock);
 	printf("closing socket\n");
 }
-void* read_thd(void* data)
+void* read_thd(void* socket)
 {
-	Data* datas = data;
-	char line[100];
-    FILE* fp;
-    char* tok;
-    fp = popen("python3 ../rpi_road_object_detection/TFLite_detection_webcam_loop.py --modeldir=TFLite_model_bbd --output_path=processed_images","r");
-    if (fp == NULL) {
-        printf("Failed to run command\n" );
-        exit(1);
-    }
-    while (fgets(line, sizeof(line), fp) != NULL)
-    {
-          // Read the output.
-        int x;
-        int y;
-        strtok(line,",()");
-        tok = strtok(NULL,",()");
-        x = atoi(tok);
-        tok = strtok(NULL,",()");
-        y = atoi(tok);
-        printf("C received %d, %d\n", x,y);
-        datas->detection = ((x/10)*1000) + (y/10);
-    }
-        
-
-        pclose(fp);  // close 
-
-    return 0;
+	int * sock = (int*)socket;
+	char msg[100];
+	int len;
+	while(1)
+	{
+		len = read(*sock,msg,sizeof(msg));
+		printf("Received data from server : \n");
+		for(int i = 0; i< 100; i++)
+		{
+			printf("%d",msg[i]);
+		}
+		printf("\n");
+		//printf("Received data from server : %s\n",msg);
+	}
 }
