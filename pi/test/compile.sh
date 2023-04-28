@@ -1,1 +1,1 @@
-gcc test.c -o test -lpthread
+gcc net_test.c -o test -lpthread
