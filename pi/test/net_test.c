@@ -248,7 +248,7 @@ void* cadence_thd(void* data)
     Data* datas = data;
     GPIOExport(17);
     sleep(0.5);
-    GPIODirection(17,OUT);
+    GPIODirection(17,IN);
     while(1)
     {
         // while(GPIORead(17) == 1);
@@ -286,7 +286,7 @@ void* write_thd(void* data)
         buffer[6] = *((int*)(&detectionbit)) >> 8;
         buffer[5] = *((int*)(&detectionbit)) >> 16;
         buffer[4] = *((int*)(&detectionbit)) >> 24;
-		sleep(0.3);
+		sleep(0.5);
 			//send
             // send(*sock,&cadencebit,sizeof(cadencebit),0);
             // send(*sock,&detectionbit,sizeof(detectionbit),0);
