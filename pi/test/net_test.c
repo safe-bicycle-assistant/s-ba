@@ -150,7 +150,7 @@ void* cadence_thd(void* data)
     {
         sleep(1);
         // while(GPIORead(17) == 1);
-        float a = (float)rand() / 3000000;
+        float a = (float)rand() / 18000000;
         // float duration = ((float)end-start)/CLOCKS_PER_SEC;
         // float rpm = 50/duration;
         datas->cadence = a;
@@ -181,7 +181,7 @@ void* write_thd(void* data)
         buffer[6] = *((int*)(&detectionbit)) >> 8;
         buffer[5] = *((int*)(&detectionbit)) >> 16;
         buffer[4] = *((int*)(&detectionbit)) >> 24;
-		sleep(0.5);
+		sleep(0.9);
 			//send
             // send(*sock,&cadencebit,sizeof(cadencebit),0);
             // send(*sock,&detectionbit,sizeof(detectionbit),0);
