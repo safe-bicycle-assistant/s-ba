@@ -15,6 +15,7 @@ void error_handling(char* msg)
 }
 int main(void)
 {
+    // printf("sizeof float int %d %d\n",sizeof(float), sizeof(int));
 	char port[]="33333";
 	char msg[100];
 	int serv_sock, clnt_sock = -1;
@@ -99,10 +100,22 @@ int main(void)
 void* write_thd(void* socket)
 {
 	int* sock = (int*)socket;
-    float cadence = 10.3;
+    float cadencebit = 10.3;
     int detectionbit = 30;
-    char buffer[100];
-    sprintf(buffer,"%.5f,%d");
+    char buffer[100] = {0,};
+    
+    buffer[3] = *((int*)(&cadencebit)) ;
+	buffer[2] = *((int*)(&cadencebit)) >> 8;
+	buffer[1] = *((int*)(&cadencebit)) >> 16;
+	buffer[0] = *((int*)(&cadencebit)) >> 24;
+
+	buffer[7] = *((int*)(&detectionbit));
+	buffer[6] = *((int*)(&detectionbit)) >> 8;
+	buffer[5] = *((int*)(&detectionbit)) >> 16;
+	buffer[4] = *((int*)(&detectionbit)) >> 24;
+    // memcpy(buffer,&cadencebit,sizeof(cadencebit));
+    // memcpy(buffer+sizeof(cadencebit),&detectionbit,sizeof(detectionbit));
+	//sprintf(buffer,"%.5f,%d");
     char msg[100];
 	while(1)
 	{
@@ -110,6 +123,12 @@ void* write_thd(void* socket)
         
 		if(strcmp("s",msg)==0)
 		{
+			//send
+            // send(*sock,&cadencebit,sizeof(cadencebit),0);
+            // send(*sock,&detectionbit,sizeof(detectionbit),0);
+            // for(int i = 0; i< 100; i++)
+            //     printf("%d",msg[i]);
+            // printf("\n");
 			write(*sock,buffer,sizeof(buffer));
             // write(*sock,&detectionbit,sizeof(detectionbit));
 
