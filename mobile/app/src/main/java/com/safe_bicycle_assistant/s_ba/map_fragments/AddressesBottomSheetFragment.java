@@ -1,4 +1,4 @@
-package com.safe_bicycle_assistant.s_ba;
+package com.safe_bicycle_assistant.s_ba.map_fragments;
 
 import android.location.Address;
 import android.os.Bundle;
@@ -13,15 +13,16 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.safe_bicycle_assistant.s_ba.R;
 
 import java.util.ArrayList;
 
-public class MapBottomSheet extends BottomSheetDialogFragment {
+public class AddressesBottomSheetFragment extends BottomSheetDialogFragment {
     private MapBottomSheetListener mListener;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup viewGroup, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.bottom_sheet_map, viewGroup, false);
+        View view = inflater.inflate(R.layout.fragment_addresses_bottom_sheet, viewGroup, false);
 
         ListView listView = view.findViewById(R.id.listViewSearchResult);
         listView.setOnItemClickListener((adapterView, view1, position, id) ->

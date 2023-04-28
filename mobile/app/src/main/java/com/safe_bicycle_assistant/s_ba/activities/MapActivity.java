@@ -1,4 +1,4 @@
-package com.safe_bicycle_assistant.s_ba;
+package com.safe_bicycle_assistant.s_ba.activities;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -18,6 +18,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import com.safe_bicycle_assistant.s_ba.BuildConfig;
+import com.safe_bicycle_assistant.s_ba.map_fragments.AddressesBottomSheetFragment;
+import com.safe_bicycle_assistant.s_ba.R;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.bonuspack.location.GeocoderNominatim;
@@ -39,11 +43,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class MapActivity extends AppCompatActivity implements MapBottomSheet.MapBottomSheetListener {
+public class MapActivity extends AppCompatActivity implements AddressesBottomSheetFragment.MapBottomSheetListener {
     private final int REQUEST_PERMISSIONS_REQUEST_CODE = 1;
     private MapView map = null;
     private GeoPoint currentPoint = new GeoPoint(0.f, 0.f);
-    private MapBottomSheet mapBottomSheet = null;
+    private AddressesBottomSheetFragment addressesBottomSheetFragment = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -73,13 +77,13 @@ public class MapActivity extends AppCompatActivity implements MapBottomSheet.Map
         editTextDestination.setOnKeyListener((v, keyCode, event) -> {
             if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_ENTER) {
                 List<Address> addresses = geocode(editTextDestination.getText().toString());
-                mapBottomSheet = new MapBottomSheet();
+                addressesBottomSheetFragment = new AddressesBottomSheetFragment();
 
                 Bundle args = new Bundle();
                 args.putParcelableArrayList("addresses", (ArrayList<Address>) addresses);
-                mapBottomSheet.setArguments(args);
+                addressesBottomSheetFragment.setArguments(args);
 
-                mapBottomSheet.show(getSupportFragmentManager(), "mapBottomSheet");
+                addressesBottomSheetFragment.show(getSupportFragmentManager(), "mapBottomSheet");
             }
 
             return true;
@@ -206,9 +210,9 @@ public class MapActivity extends AppCompatActivity implements MapBottomSheet.Map
         GeoPoint endPoint = new GeoPoint(address.getLatitude(), address.getLongitude());
         searchRoute(currentPoint, endPoint);
 
-        if (mapBottomSheet != null) {
-            mapBottomSheet.dismiss();
-            mapBottomSheet = null;
+        if (addressesBottomSheetFragment != null) {
+            addressesBottomSheetFragment.dismiss();
+            addressesBottomSheetFragment = null;
         }
     }
 }
