@@ -253,8 +253,7 @@ void* cadence_thd(void* data)
     {
         // while(GPIORead(17) == 1);
         clock_t start = clock();
-        while(GPIORead(17) == 1);
-        while(GPIORead(17) == 0);
+        printf("%d",GPIOExport(17));
         clock_t end = clock();
         float duration = ((float)end-start)/CLOCKS_PER_SEC;
         float rpm = 50/duration;
