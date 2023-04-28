@@ -138,7 +138,7 @@ int* sock;
 int main(void)
 {
     int status;
-    pthread_t p_thread[2];
+    pthread_t p_thread[3];
     // printf("sizeof float int %d %d\n",sizeof(float), sizeof(int));
 	char port[]="33333";
 	char msg[100];
@@ -161,15 +161,10 @@ int main(void)
     {
         
         
-        while(1)
-        {
-            clnt_addr_size = sizeof(clnt_addr);
-            clnt_sock = accept(serv_sock, (struct sockaddr*)&clnt_addr,&clnt_addr_size);
-            
-            
 
-            
-        }
+        clnt_addr_size = sizeof(clnt_addr);
+        clnt_sock = accept(serv_sock, (struct sockaddr*)&clnt_addr,&clnt_addr_size);
+
     }
     if(clnt_sock == -1)
         error_handling("accept() error");
@@ -187,11 +182,15 @@ int main(void)
     pthread_create(&p_thread[0],NULL,read_thd,(void*)&data);
 
     pthread_create(&p_thread[1],NULL,write_thd,(void*)&data);
-    pthread_join(p_thread[1],(void**)&status);
+    pthread_create(&p_thread[2],NULL,cadence_thd,(void*)&data);
     
+    
+    pthread_join(p_thread[0],(void**)&status);
+    pthread_join(p_thread[1],(void**)&status);
+    pthread_join(p_thread[2],(void**)&status);
     
 
-    pthread_join(p_thread[0],(void**)&status);
+    
     
 	/*
 	char port[6]="5672";
