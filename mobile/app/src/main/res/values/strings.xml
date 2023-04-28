@@ -3,4 +3,5 @@
     <string name="from">출발지</string>
     <string name="to">목적지</string>
     <string name="search_result">검색결과</string>
+    <string name="here">Here</string>
 </resources>

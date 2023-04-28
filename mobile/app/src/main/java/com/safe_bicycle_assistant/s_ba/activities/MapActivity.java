@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
+import android.widget.Button;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
@@ -24,6 +25,7 @@ import com.safe_bicycle_assistant.s_ba.map_fragments.AddressesBottomSheetFragmen
 import com.safe_bicycle_assistant.s_ba.R;
 import com.safe_bicycle_assistant.s_ba.models.AddressFor;
 
+import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.bonuspack.location.GeocoderNominatim;
 import org.osmdroid.bonuspack.routing.GraphHopperRoadManager;
@@ -36,6 +38,7 @@ import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
+import org.osmdroid.views.overlay.Overlay;
 import org.osmdroid.views.overlay.Polyline;
 
 import java.util.ArrayList;
@@ -50,13 +53,20 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
     private final GeoPoint DEFAULT_POINT = new GeoPoint(37.2831f, 127.0448f);
 
     private MapView map = null;
+    private EditText editTextFrom = null;
+    private EditText editTextTo = null;
 
     private AddressesBottomSheetFragment addressesBottomSheetFragment = null;
 
+    private final AtomicReference<GeoPoint> current = new AtomicReference<>();
     private GeoPoint from = this.DEFAULT_POINT;
-    private GeoPoint to = this.DEFAULT_POINT;
+    private GeoPoint to = null;
+
+    private LocationManager locationManager = null;
+    private LocationListener locationListener = location -> {};
 
     @Override
+    @SuppressLint("MissingPermission")
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -77,17 +87,22 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
         setContentView(R.layout.activity_map);
         this.map = findViewById(R.id.map);
 
-        this.from = getCurrentGeoPoint();
-        initialize(this.from);
+        this.locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        this.current.set(getLastKnownGeoPoint());
+        this.from = this.current.get().clone();
+        initialize(this.current.get());
 
-        EditText editTextFrom = findViewById(R.id.editTextFrom);
-        editTextFrom.setText(getAddressByPoint(this.from).getExtras().get("display_name").toString().trim());
-        editTextFrom.setOnKeyListener((v, keyCode, event) ->
-                showAddressesBottomSheet(this.from, AddressFor.FROM, editTextFrom, keyCode, event));
+        this.editTextFrom = findViewById(R.id.editTextFrom);
+        this.editTextFrom.setText(extractAddressText(getAddressByPoint(this.from)));
+        this.editTextFrom.setOnKeyListener((v, keyCode, event) ->
+                showAddressesBottomSheet(AddressFor.FROM, this.editTextFrom, keyCode, event));
 
-        EditText editTextTo = findViewById(R.id.editTextTo);
-        editTextTo.setOnKeyListener((v, keyCode, event) ->
-                showAddressesBottomSheet(this.to, AddressFor.TO, editTextTo, keyCode, event));
+        this.editTextTo = findViewById(R.id.editTextTo);
+        this.editTextTo.setOnKeyListener((v, keyCode, event) ->
+                showAddressesBottomSheet(AddressFor.TO, this.editTextTo, keyCode, event));
+
+        Button buttonCurrentLocation = findViewById(R.id.buttonCurrentLocation);
+        buttonCurrentLocation.setOnClickListener((v) -> this.moveToPoint(getCurrentGeoPoint()));
     }
 
     @Override
@@ -144,8 +159,11 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
         mapController.setZoom(17.0);
         mapController.setCenter(initialPoint);
 
-        Marker marker = getDefaultMarker(initialPoint);
+        Marker marker = getDefaultMarker("here", initialPoint);
         this.map.getOverlays().add(marker);
+
+        this.locationListener = location ->
+                current.set(new GeoPoint(location.getLatitude(), location.getLongitude()));
 
         this.map.invalidate();
     }
@@ -160,15 +178,22 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
             roadManager.addRequestOption("profile=bike");
         }
 
-        this.map.getOverlays().clear();
+        removePolyline("path");
+        removeMarker("from");
+        removeMarker("to");
 
-        List<Marker> markers = Arrays.asList(getDefaultMarker(from), getDefaultMarker(to));
-        this.map.getOverlays().addAll(markers);
+        this.map.getOverlays().addAll(
+                Arrays.asList(
+                        getDefaultMarker("from", from),
+                        getDefaultMarker("to", to)
+                )
+        );
 
         ArrayList<GeoPoint> waypoints = new ArrayList<>(Arrays.asList(from, to));
 
         Road road = roadManager.getRoad(waypoints);
         Polyline roadOverlay = RoadManager.buildRoadOverlay(road);
+        roadOverlay.setId("path");
         roadOverlay.getOutlinePaint().setStrokeWidth(20.0f);
         this.map.getOverlays().add(roadOverlay);
 
@@ -178,33 +203,35 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
         this.map.invalidate();
     }
 
-    @SuppressLint("MissingPermission")
-    private GeoPoint getCurrentGeoPoint() {
-        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-
-        Location defaultLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        AtomicReference<GeoPoint> point = new AtomicReference<>();
-        if (defaultLocation != null) {
-            point.set(new GeoPoint(defaultLocation.getLatitude(), defaultLocation.getLongitude()));
-        }
-
-        final LocationListener locationListener = location ->
-                point.set(new GeoPoint(location.getLatitude(), location.getLongitude()));
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, locationListener);
-
-        return point.get();
+    private void moveToPoint(GeoPoint point) {
+        removeMarker("here");
+        this.map.getOverlays().add(getDefaultMarker("here", point));
+        this.map.getController().animateTo(point);
     }
 
-    private List<Address> getAddressesByName(GeoPoint current, String locationName) {
+    @SuppressLint("MissingPermission")
+    private GeoPoint getCurrentGeoPoint() {
+        this.locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, this.locationListener, null);
+        return this.current.get();
+    }
+
+    @SuppressLint("MissingPermission")
+    private GeoPoint getLastKnownGeoPoint() {
+        Location location = this.locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        return new GeoPoint(location.getLatitude(), location.getLongitude());
+    }
+
+    private List<Address> getAddressesByName(String locationName) {
         try {
+            IGeoPoint center = this.map.getMapCenter();
             GeocoderNominatim geocoder = new GeocoderNominatim(Locale.KOREAN, getPackageName());
             return geocoder.getFromLocationName(
                     locationName,
                     15,
-                    current.getLatitude() - 3,
-                    current.getLongitude() - 3,
-                    current.getLatitude() + 3,
-                    current.getLongitude() + 3
+                    center.getLatitude() - 1,
+                    center.getLongitude() - 1,
+                    center.getLatitude() + 1,
+                    center.getLongitude() + 1
             );
         } catch (Exception e) {
             return Collections.emptyList();
@@ -220,13 +247,12 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
         }
     }
 
-    private boolean showAddressesBottomSheet(GeoPoint current,
-                                             AddressFor addressFor,
+    private boolean showAddressesBottomSheet(AddressFor addressFor,
                                              EditText view,
                                              int keyCode,
                                              KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_ENTER) {
-            List<Address> addresses = getAddressesByName(current, view.getText().toString());
+            List<Address> addresses = getAddressesByName(view.getText().toString());
             this.addressesBottomSheetFragment = new AddressesBottomSheetFragment();
 
             Bundle args = new Bundle();
@@ -240,11 +266,40 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
         return true;
     }
 
-    private Marker getDefaultMarker(GeoPoint point) {
+    private Marker getDefaultMarker(String id, GeoPoint point) {
         Marker marker = new Marker(this.map);
         marker.setOnMarkerClickListener((m, v) -> false);
         marker.setPosition(point);
+        marker.setId(id);
         return marker;
+    }
+
+    private void removeMarker(String id) {
+        for (int i = 0; i < this.map.getOverlays().size(); i++) {
+            Overlay overlay = this.map.getOverlays().get(i);
+            if (overlay instanceof Marker && ((Marker) overlay).getId().equals(id)) {
+                this.map.getOverlays().remove(overlay);
+                break;
+            }
+        }
+    }
+
+    private void removePolyline(String id) {
+        for (int i = 0; i < this.map.getOverlays().size(); i++) {
+            Overlay overlay = this.map.getOverlays().get(i);
+            if (overlay instanceof Polyline && ((Polyline) overlay).getId().equals(id)) {
+                this.map.getOverlays().remove(overlay);
+                break;
+            }
+        }
+    }
+
+    private String extractAddressText(Address address) {
+        if (address != null) {
+            return address.getExtras().get("display_name").toString().trim();
+        } else {
+            return "";
+        }
     }
 
     private BoundingBox getBoundingBox(ArrayList<GeoPoint> points) {
@@ -276,11 +331,20 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
         GeoPoint point = new GeoPoint(address.getLatitude(), address.getLongitude());
         if (addressFor == AddressFor.FROM) {
             this.from = point;
+            this.editTextFrom.setText(extractAddressText(getAddressByPoint(this.from)));
         } else if (addressFor == AddressFor.TO) {
             this.to = point;
+            this.editTextTo.setText(extractAddressText(getAddressByPoint(this.to)));
         }
 
-        searchRoute();
+        if (this.to != null) {
+            if (this.from == null) {
+                this.to = this.current.get();
+                this.editTextTo.setText(extractAddressText(getAddressByPoint(this.to)));
+            }
+
+            searchRoute();
+        }
 
         if (this.addressesBottomSheetFragment != null) {
             this.addressesBottomSheetFragment.dismiss();
