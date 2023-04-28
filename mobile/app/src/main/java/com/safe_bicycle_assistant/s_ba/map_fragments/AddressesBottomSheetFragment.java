@@ -28,11 +28,11 @@ public class AddressesBottomSheetFragment extends BottomSheetDialogFragment {
 
         ListView listView = view.findViewById(R.id.listViewSearchResult);
         listView.setOnItemClickListener((adapterView, view1, position, id) ->
-                mListener.onAddressSelected((Address) adapterView.getAdapter().getItem(position), this.addressFor));
+                this.mListener.onAddressSelected((Address) adapterView.getAdapter().getItem(position), this.addressFor));
 
         Bundle args = getArguments();
         if (args != null) {
-            addressFor = AddressFor.from(args.getInt("addressFor"));
+            this.addressFor = AddressFor.from(args.getInt("addressFor"));
             ArrayList<Address> addresses = new ArrayList<>();
             for (Parcelable parcel : args.getParcelableArrayList("addresses")) {
                 Address address = (Address) parcel;
@@ -59,7 +59,7 @@ public class AddressesBottomSheetFragment extends BottomSheetDialogFragment {
             );
         }
 
-        mListener = (MapBottomSheetListener) getContext();
+        this.mListener = (MapBottomSheetListener) getContext();
 
         return view;
     }

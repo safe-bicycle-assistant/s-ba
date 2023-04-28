@@ -32,6 +32,7 @@ import org.osmdroid.bonuspack.routing.Road;
 import org.osmdroid.bonuspack.routing.RoadManager;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
@@ -52,8 +53,8 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
 
     private AddressesBottomSheetFragment addressesBottomSheetFragment = null;
 
-    private GeoPoint from = DEFAULT_POINT;
-    private GeoPoint to = DEFAULT_POINT;
+    private GeoPoint from = this.DEFAULT_POINT;
+    private GeoPoint to = this.DEFAULT_POINT;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -74,35 +75,37 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
         );
 
         setContentView(R.layout.activity_map);
-        map = findViewById(R.id.map);
+        this.map = findViewById(R.id.map);
 
-        from = getCurrentGeoPoint();
-        initialize(from);
+        this.from = getCurrentGeoPoint();
+        initialize(this.from);
 
         EditText editTextFrom = findViewById(R.id.editTextFrom);
-        editTextFrom.setText(getAddressByPoint(from).getExtras().get("display_name").toString().trim());
+        editTextFrom.setText(getAddressByPoint(this.from).getExtras().get("display_name").toString().trim());
         editTextFrom.setOnKeyListener((v, keyCode, event) ->
-                showAddressesBottomSheet(from, AddressFor.FROM, editTextFrom, keyCode, event));
+                showAddressesBottomSheet(this.from, AddressFor.FROM, editTextFrom, keyCode, event));
 
         EditText editTextTo = findViewById(R.id.editTextTo);
         editTextTo.setOnKeyListener((v, keyCode, event) ->
-                showAddressesBottomSheet(to, AddressFor.TO, editTextTo, keyCode, event));
+                showAddressesBottomSheet(this.to, AddressFor.TO, editTextTo, keyCode, event));
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        map.onResume();
+        this.map.onResume();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        map.onPause();
+        this.map.onPause();
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         ArrayList<String> permissionsToRequest = new ArrayList<>(
@@ -113,7 +116,7 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
             ActivityCompat.requestPermissions(
                     this,
                     permissionsToRequest.toArray(new String[0]),
-                    REQUEST_PERMISSIONS_REQUEST_CODE);
+                    this.REQUEST_PERMISSIONS_REQUEST_CODE);
         }
     }
 
@@ -129,22 +132,22 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
             ActivityCompat.requestPermissions(
                     this,
                     permissionsToRequest.toArray(new String[0]),
-                    REQUEST_PERMISSIONS_REQUEST_CODE);
+                    this.REQUEST_PERMISSIONS_REQUEST_CODE);
         }
     }
 
     private void initialize(GeoPoint initialPoint) {
-        map.setTileSource(TileSourceFactory.MAPNIK);
-        map.setMultiTouchControls(true);
+        this.map.setTileSource(TileSourceFactory.MAPNIK);
+        this.map.setMultiTouchControls(true);
 
-        IMapController mapController = map.getController();
+        IMapController mapController = this.map.getController();
         mapController.setZoom(17.0);
         mapController.setCenter(initialPoint);
 
         Marker marker = getDefaultMarker(initialPoint);
-        map.getOverlays().add(marker);
+        this.map.getOverlays().add(marker);
 
-        map.invalidate();
+        this.map.invalidate();
     }
 
     private void searchRoute() {
@@ -157,18 +160,22 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
             roadManager.addRequestOption("profile=bike");
         }
 
-        map.getOverlays().clear();
+        this.map.getOverlays().clear();
 
         List<Marker> markers = Arrays.asList(getDefaultMarker(from), getDefaultMarker(to));
-        map.getOverlays().addAll(markers);
+        this.map.getOverlays().addAll(markers);
 
         ArrayList<GeoPoint> waypoints = new ArrayList<>(Arrays.asList(from, to));
+
         Road road = roadManager.getRoad(waypoints);
         Polyline roadOverlay = RoadManager.buildRoadOverlay(road);
         roadOverlay.getOutlinePaint().setStrokeWidth(20.0f);
-        map.getOverlays().add(roadOverlay);
+        this.map.getOverlays().add(roadOverlay);
 
-        map.invalidate();
+        BoundingBox boundingBox = getBoundingBox(waypoints);
+        this.map.zoomToBoundingBox(boundingBox, true);
+
+        this.map.invalidate();
     }
 
     @SuppressLint("MissingPermission")
@@ -181,7 +188,8 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
             point.set(new GeoPoint(defaultLocation.getLatitude(), defaultLocation.getLongitude()));
         }
 
-        final LocationListener locationListener = location -> point.set(new GeoPoint(location.getLatitude(), location.getLongitude()));
+        final LocationListener locationListener = location ->
+                point.set(new GeoPoint(location.getLatitude(), location.getLongitude()));
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, locationListener);
 
         return point.get();
@@ -219,40 +227,64 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
                                              KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_ENTER) {
             List<Address> addresses = getAddressesByName(current, view.getText().toString());
-            addressesBottomSheetFragment = new AddressesBottomSheetFragment();
+            this.addressesBottomSheetFragment = new AddressesBottomSheetFragment();
 
             Bundle args = new Bundle();
             args.putInt("addressFor", addressFor.toValue());
             args.putParcelableArrayList("addresses", (ArrayList<Address>) addresses);
-            addressesBottomSheetFragment.setArguments(args);
+            this.addressesBottomSheetFragment.setArguments(args);
 
-            addressesBottomSheetFragment.show(getSupportFragmentManager(), "mapBottomSheet");
+            this.addressesBottomSheetFragment.show(getSupportFragmentManager(), "mapBottomSheet");
         }
 
         return true;
     }
 
     private Marker getDefaultMarker(GeoPoint point) {
-        Marker marker = new Marker(map);
+        Marker marker = new Marker(this.map);
         marker.setOnMarkerClickListener((m, v) -> false);
         marker.setPosition(point);
         return marker;
+    }
+
+    private BoundingBox getBoundingBox(ArrayList<GeoPoint> points) {
+        double north = 0, northOffset = 0.04;
+        double east = 0, eastOffset = 0.02;
+        double south = 0, southOffset = 0.02;
+        double west = 0, westOffset = 0.02;
+
+        for (int i = 0; i < points.size(); i++) {
+            if (points.get(i) == null) continue;
+
+            double latitude = points.get(i).getLatitude();
+            double longitude = points.get(i).getLongitude();
+
+            if ((i == 0) || (latitude > north)) north = latitude;
+            if ((i == 0) || (latitude < south)) south = latitude;
+            if ((i == 0) || (longitude < west)) west = longitude;
+            if ((i == 0) || (longitude > east)) east = longitude;
+        }
+
+        return new BoundingBox(north + northOffset,
+                east + eastOffset,
+                south - southOffset,
+                west - westOffset);
     }
 
     @Override
     public void onAddressSelected(Address address, AddressFor addressFor) {
         GeoPoint point = new GeoPoint(address.getLatitude(), address.getLongitude());
         if (addressFor == AddressFor.FROM) {
-            from = point;
+            this.from = point;
         } else if (addressFor == AddressFor.TO) {
-            to = point;
+            this.to = point;
         }
 
         searchRoute();
 
-        if (addressesBottomSheetFragment != null) {
-            addressesBottomSheetFragment.dismiss();
-            addressesBottomSheetFragment = null;
+        if (this.addressesBottomSheetFragment != null) {
+            this.addressesBottomSheetFragment.dismiss();
+            this.addressesBottomSheetFragment = null;
         }
     }
 }

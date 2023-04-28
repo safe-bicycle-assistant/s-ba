@@ -12,7 +12,7 @@ public enum AddressFor {
     }
 
     public int toValue() {
-        return value;
+        return this.value;
     }
 
     public static AddressFor from(int value) {
