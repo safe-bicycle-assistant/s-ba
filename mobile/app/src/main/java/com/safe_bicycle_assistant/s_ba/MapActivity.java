@@ -4,11 +4,15 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.location.Address;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
+import android.view.KeyEvent;
+import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +20,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import org.osmdroid.api.IMapController;
+import org.osmdroid.bonuspack.location.GeocoderNominatim;
 import org.osmdroid.bonuspack.routing.GraphHopperRoadManager;
 import org.osmdroid.bonuspack.routing.OSRMRoadManager;
 import org.osmdroid.bonuspack.routing.Road;
@@ -29,11 +34,16 @@ import org.osmdroid.views.overlay.Polyline;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class MapActivity extends AppCompatActivity {
+public class MapActivity extends AppCompatActivity implements MapBottomSheet.MapBottomSheetListener {
     private final int REQUEST_PERMISSIONS_REQUEST_CODE = 1;
     private MapView map = null;
+    private GeoPoint currentPoint = new GeoPoint(0.f, 0.f);
+    private MapBottomSheet mapBottomSheet = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -56,11 +66,24 @@ public class MapActivity extends AppCompatActivity {
         setContentView(R.layout.activity_map);
         map = findViewById(R.id.map);
 
-        GeoPoint initialPoint = getCurrentGeoPoint();
-        initialize(initialPoint);
+        currentPoint = getCurrentGeoPoint();
+        initialize(currentPoint);
 
-        GeoPoint endPoint = new GeoPoint(37.5, 127.06);
-        searchRoute(initialPoint, endPoint);
+        EditText editTextDestination = findViewById(R.id.editTextDestination);
+        editTextDestination.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_ENTER) {
+                List<Address> addresses = geocode(editTextDestination.getText().toString());
+                mapBottomSheet = new MapBottomSheet();
+
+                Bundle args = new Bundle();
+                args.putParcelableArrayList("addresses", (ArrayList<Address>) addresses);
+                mapBottomSheet.setArguments(args);
+
+                mapBottomSheet.show(getSupportFragmentManager(), "mapBottomSheet");
+            }
+
+            return true;
+        });
     }
 
     @Override
@@ -119,6 +142,8 @@ public class MapActivity extends AppCompatActivity {
         marker.setOnMarkerClickListener((m, v) -> false);
         marker.setPosition(initialPoint);
         map.getOverlays().add(marker);
+
+        map.invalidate();
     }
 
     private void searchRoute(GeoPoint from, GeoPoint to) {
@@ -138,17 +163,45 @@ public class MapActivity extends AppCompatActivity {
         Road road = roadManager.getRoad(waypoints);
         Polyline roadOverlay = RoadManager.buildRoadOverlay(road);
         roadOverlay.getOutlinePaint().setStrokeWidth(20.0f);
+        map.getOverlays().clear();
         map.getOverlays().add(roadOverlay);
 
         map.invalidate();
     }
 
+    @SuppressLint("MissingPermission")
     private GeoPoint getCurrentGeoPoint() {
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
-        @SuppressLint("MissingPermission") Location defaultLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        AtomicReference<GeoPoint> point = new AtomicReference<>(new GeoPoint(defaultLocation.getLatitude(), defaultLocation.getLongitude()));
+        Location defaultLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        AtomicReference<GeoPoint> point = new AtomicReference<>();
+        if (defaultLocation != null) {
+            point.set(new GeoPoint(defaultLocation.getLatitude(), defaultLocation.getLongitude()));
+        }
+
+        final LocationListener locationListener = location -> point.set(new GeoPoint(location.getLatitude(), location.getLongitude()));
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, locationListener);
 
         return point.get();
+    }
+
+    private List<Address> geocode(String locationName) {
+        try {
+            GeocoderNominatim geocoder = new GeocoderNominatim(Locale.KOREAN, getPackageName());
+            return geocoder.getFromLocationName(locationName, 10);
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public void onAddressSelected(Address address) {
+        GeoPoint endPoint = new GeoPoint(address.getLatitude(), address.getLongitude());
+        searchRoute(currentPoint, endPoint);
+
+        if (mapBottomSheet != null) {
+            mapBottomSheet.dismiss();
+            mapBottomSheet = null;
+        }
     }
 }

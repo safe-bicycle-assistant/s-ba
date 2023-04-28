@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">S-BA</string>
+    <string name="destination">목적지</string>
+    <string name="search_result">검색결과</string>
 </resources>
