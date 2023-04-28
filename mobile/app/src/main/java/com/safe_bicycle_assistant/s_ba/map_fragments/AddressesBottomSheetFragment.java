@@ -14,11 +14,13 @@ import androidx.annotation.NonNull;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.safe_bicycle_assistant.s_ba.R;
+import com.safe_bicycle_assistant.s_ba.models.AddressFor;
 
 import java.util.ArrayList;
 
 public class AddressesBottomSheetFragment extends BottomSheetDialogFragment {
     private MapBottomSheetListener mListener;
+    private AddressFor addressFor = AddressFor.UNKNOWN;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup viewGroup, Bundle savedInstanceState) {
@@ -26,10 +28,11 @@ public class AddressesBottomSheetFragment extends BottomSheetDialogFragment {
 
         ListView listView = view.findViewById(R.id.listViewSearchResult);
         listView.setOnItemClickListener((adapterView, view1, position, id) ->
-                mListener.onAddressSelected((Address) adapterView.getAdapter().getItem(position)));
+                mListener.onAddressSelected((Address) adapterView.getAdapter().getItem(position), this.addressFor));
 
         Bundle args = getArguments();
         if (args != null) {
+            addressFor = AddressFor.from(args.getInt("addressFor"));
             ArrayList<Address> addresses = new ArrayList<>();
             for (Parcelable parcel : args.getParcelableArrayList("addresses")) {
                 Address address = (Address) parcel;
@@ -47,8 +50,8 @@ public class AddressesBottomSheetFragment extends BottomSheetDialogFragment {
 
                             Address address = (Address) getItem(position);
                             String[] headings = ((String) address.getExtras().get("display_name")).split(",", 2);
-                            ((TextView) convertView.findViewById(android.R.id.text1)).setText(headings[0]);
-                            ((TextView) convertView.findViewById(android.R.id.text2)).setText(headings[1]);
+                            ((TextView) convertView.findViewById(android.R.id.text1)).setText(headings[0].trim());
+                            ((TextView) convertView.findViewById(android.R.id.text2)).setText(headings[1].trim());
 
                             return convertView;
                         }
@@ -62,6 +65,6 @@ public class AddressesBottomSheetFragment extends BottomSheetDialogFragment {
     }
 
     public interface MapBottomSheetListener {
-        void onAddressSelected(Address address);
+        void onAddressSelected(Address address, AddressFor addressFor);
     }
 }

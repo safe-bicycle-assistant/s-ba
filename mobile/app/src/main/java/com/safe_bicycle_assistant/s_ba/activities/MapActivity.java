@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat;
 import com.safe_bicycle_assistant.s_ba.BuildConfig;
 import com.safe_bicycle_assistant.s_ba.map_fragments.AddressesBottomSheetFragment;
 import com.safe_bicycle_assistant.s_ba.R;
+import com.safe_bicycle_assistant.s_ba.models.AddressFor;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.bonuspack.location.GeocoderNominatim;
@@ -45,9 +46,14 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class MapActivity extends AppCompatActivity implements AddressesBottomSheetFragment.MapBottomSheetListener {
     private final int REQUEST_PERMISSIONS_REQUEST_CODE = 1;
+    private final GeoPoint DEFAULT_POINT = new GeoPoint(37.2831f, 127.0448f);
+
     private MapView map = null;
-    private GeoPoint currentPoint = new GeoPoint(0.f, 0.f);
+
     private AddressesBottomSheetFragment addressesBottomSheetFragment = null;
+
+    private GeoPoint from = DEFAULT_POINT;
+    private GeoPoint to = DEFAULT_POINT;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -70,24 +76,17 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
         setContentView(R.layout.activity_map);
         map = findViewById(R.id.map);
 
-        currentPoint = getCurrentGeoPoint();
-        initialize(currentPoint);
+        from = getCurrentGeoPoint();
+        initialize(from);
 
-        EditText editTextDestination = findViewById(R.id.editTextDestination);
-        editTextDestination.setOnKeyListener((v, keyCode, event) -> {
-            if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_ENTER) {
-                List<Address> addresses = geocode(editTextDestination.getText().toString());
-                addressesBottomSheetFragment = new AddressesBottomSheetFragment();
+        EditText editTextFrom = findViewById(R.id.editTextFrom);
+        editTextFrom.setText(getAddressByPoint(from).getExtras().get("display_name").toString().trim());
+        editTextFrom.setOnKeyListener((v, keyCode, event) ->
+                showAddressesBottomSheet(from, AddressFor.FROM, editTextFrom, keyCode, event));
 
-                Bundle args = new Bundle();
-                args.putParcelableArrayList("addresses", (ArrayList<Address>) addresses);
-                addressesBottomSheetFragment.setArguments(args);
-
-                addressesBottomSheetFragment.show(getSupportFragmentManager(), "mapBottomSheet");
-            }
-
-            return true;
-        });
+        EditText editTextTo = findViewById(R.id.editTextTo);
+        editTextTo.setOnKeyListener((v, keyCode, event) ->
+                showAddressesBottomSheet(to, AddressFor.TO, editTextTo, keyCode, event));
     }
 
     @Override
@@ -142,15 +141,13 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
         mapController.setZoom(17.0);
         mapController.setCenter(initialPoint);
 
-        Marker marker = new Marker(map);
-        marker.setOnMarkerClickListener((m, v) -> false);
-        marker.setPosition(initialPoint);
+        Marker marker = getDefaultMarker(initialPoint);
         map.getOverlays().add(marker);
 
         map.invalidate();
     }
 
-    private void searchRoute(GeoPoint from, GeoPoint to) {
+    private void searchRoute() {
         RoadManager roadManager = new OSRMRoadManager(this, getPackageName());
         ((OSRMRoadManager) roadManager).setMean(OSRMRoadManager.MEAN_BY_BIKE);
 
@@ -160,14 +157,15 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
             roadManager.addRequestOption("profile=bike");
         }
 
-        ArrayList<GeoPoint> waypoints = new ArrayList<>();
-        waypoints.add(from);
-        waypoints.add(to);
+        map.getOverlays().clear();
 
+        List<Marker> markers = Arrays.asList(getDefaultMarker(from), getDefaultMarker(to));
+        map.getOverlays().addAll(markers);
+
+        ArrayList<GeoPoint> waypoints = new ArrayList<>(Arrays.asList(from, to));
         Road road = roadManager.getRoad(waypoints);
         Polyline roadOverlay = RoadManager.buildRoadOverlay(road);
         roadOverlay.getOutlinePaint().setStrokeWidth(20.0f);
-        map.getOverlays().clear();
         map.getOverlays().add(roadOverlay);
 
         map.invalidate();
@@ -189,26 +187,68 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
         return point.get();
     }
 
-    private List<Address> geocode(String locationName) {
+    private List<Address> getAddressesByName(GeoPoint current, String locationName) {
         try {
             GeocoderNominatim geocoder = new GeocoderNominatim(Locale.KOREAN, getPackageName());
             return geocoder.getFromLocationName(
                     locationName,
                     15,
-                    currentPoint.getLatitude() - 3,
-                    currentPoint.getLongitude() - 3,
-                    currentPoint.getLatitude() + 3,
-                    currentPoint.getLongitude() + 3
+                    current.getLatitude() - 3,
+                    current.getLongitude() - 3,
+                    current.getLatitude() + 3,
+                    current.getLongitude() + 3
             );
         } catch (Exception e) {
             return Collections.emptyList();
         }
     }
 
+    private Address getAddressByPoint(GeoPoint point) {
+        try {
+            GeocoderNominatim geocoder = new GeocoderNominatim(Locale.KOREAN, getPackageName());
+            return geocoder.getFromLocation(point.getLatitude(), point.getLongitude(), 1).get(0);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private boolean showAddressesBottomSheet(GeoPoint current,
+                                             AddressFor addressFor,
+                                             EditText view,
+                                             int keyCode,
+                                             KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_ENTER) {
+            List<Address> addresses = getAddressesByName(current, view.getText().toString());
+            addressesBottomSheetFragment = new AddressesBottomSheetFragment();
+
+            Bundle args = new Bundle();
+            args.putInt("addressFor", addressFor.toValue());
+            args.putParcelableArrayList("addresses", (ArrayList<Address>) addresses);
+            addressesBottomSheetFragment.setArguments(args);
+
+            addressesBottomSheetFragment.show(getSupportFragmentManager(), "mapBottomSheet");
+        }
+
+        return true;
+    }
+
+    private Marker getDefaultMarker(GeoPoint point) {
+        Marker marker = new Marker(map);
+        marker.setOnMarkerClickListener((m, v) -> false);
+        marker.setPosition(point);
+        return marker;
+    }
+
     @Override
-    public void onAddressSelected(Address address) {
-        GeoPoint endPoint = new GeoPoint(address.getLatitude(), address.getLongitude());
-        searchRoute(currentPoint, endPoint);
+    public void onAddressSelected(Address address, AddressFor addressFor) {
+        GeoPoint point = new GeoPoint(address.getLatitude(), address.getLongitude());
+        if (addressFor == AddressFor.FROM) {
+            from = point;
+        } else if (addressFor == AddressFor.TO) {
+            to = point;
+        }
+
+        searchRoute();
 
         if (addressesBottomSheetFragment != null) {
             addressesBottomSheetFragment.dismiss();
