@@ -27,7 +27,7 @@ public class AddressesBottomSheetFragment extends BottomSheetDialogFragment {
         View view = inflater.inflate(R.layout.fragment_addresses_bottom_sheet, viewGroup, false);
 
         ListView listView = view.findViewById(R.id.listViewSearchResult);
-        listView.setOnItemClickListener((adapterView, view1, position, id) ->
+        listView.setOnItemClickListener((adapterView, listItemView, position, id) ->
                 this.mListener.onAddressSelected((Address) adapterView.getAdapter().getItem(position), this.addressFor));
 
         Bundle args = getArguments();
