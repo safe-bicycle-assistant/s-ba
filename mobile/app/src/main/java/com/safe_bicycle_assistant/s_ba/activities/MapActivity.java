@@ -56,7 +56,6 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
     private MapView map = null;
     private EditText editTextFrom = null;
     private EditText editTextTo = null;
-    private Button buttonStartDriving = null;
 
     private AddressesBottomSheetFragment addressesBottomSheetFragment = null;
 
@@ -66,6 +65,19 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
 
     private LocationManager locationManager = null;
     private LocationListener locationListener = location -> {};
+
+    private enum DefinedOverlay {
+        HERE("here"),
+        TO("to"),
+        FROM("from"),
+        ROUTE("route");
+
+        public final String value;
+
+        DefinedOverlay(String value) {
+            this.value = value;
+        }
+    }
 
     @Override
     @SuppressLint("MissingPermission")
@@ -161,7 +173,7 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
         mapController.setZoom(17.0);
         mapController.setCenter(initialPoint);
 
-        Marker marker = getDefaultMarker("here", initialPoint);
+        Marker marker = getDefaultMarker(DefinedOverlay.HERE.value, initialPoint);
         this.map.getOverlays().add(marker);
 
         this.locationListener = location ->
@@ -171,6 +183,8 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
     }
 
     private void searchRoute() {
+        if (this.from == null || this.to == null) return;
+
         RoadManager roadManager = new OSRMRoadManager(this, getPackageName());
         ((OSRMRoadManager) roadManager).setMean(OSRMRoadManager.MEAN_BY_BIKE);
 
@@ -180,37 +194,37 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
             roadManager.addRequestOption("profile=bike");
         }
 
-        removePolyline("path");
-        removeMarker("from");
-        removeMarker("to");
+        removePolyline(DefinedOverlay.ROUTE.value);
+        removeMarker(DefinedOverlay.FROM.value);
+        removeMarker(DefinedOverlay.TO.value);
 
         this.map.getOverlays().addAll(
                 Arrays.asList(
-                        getDefaultMarker("from", from),
-                        getDefaultMarker("to", to)
+                        getDefaultMarker(DefinedOverlay.FROM.value, from),
+                        getDefaultMarker(DefinedOverlay.TO.value, to)
                 )
         );
 
         ArrayList<GeoPoint> waypoints = new ArrayList<>(Arrays.asList(from, to));
 
         Road road = roadManager.getRoad(waypoints);
-        Polyline roadOverlay = RoadManager.buildRoadOverlay(road);
-        roadOverlay.setId("path");
-        roadOverlay.getOutlinePaint().setStrokeWidth(20.0f);
-        this.map.getOverlays().add(roadOverlay);
+        Polyline routeOverlay = RoadManager.buildRoadOverlay(road);
+        routeOverlay.setId(DefinedOverlay.ROUTE.value);
+        routeOverlay.getOutlinePaint().setStrokeWidth(20.0f);
+        this.map.getOverlays().add(routeOverlay);
 
         BoundingBox boundingBox = getBoundingBox(waypoints);
         this.map.zoomToBoundingBox(boundingBox, true);
 
-        this.buttonStartDriving = findViewById(R.id.buttonStartDriving);
-        this.buttonStartDriving.setVisibility(View.VISIBLE);
+        Button buttonStartDriving = findViewById(R.id.buttonStartDriving);
+        buttonStartDriving.setVisibility(View.VISIBLE);
 
         this.map.invalidate();
     }
 
     private void moveToPoint(GeoPoint point) {
-        removeMarker("here");
-        this.map.getOverlays().add(getDefaultMarker("here", point));
+        removeMarker(DefinedOverlay.HERE.value);
+        this.map.getOverlays().add(getDefaultMarker(DefinedOverlay.HERE.value, point));
         this.map.getController().animateTo(point);
     }
 
@@ -223,7 +237,10 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
     @SuppressLint("MissingPermission")
     private GeoPoint getLastKnownGeoPoint() {
         Location location = this.locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        return new GeoPoint(location.getLatitude(), location.getLongitude());
+        if (location != null) {
+            return new GeoPoint(location.getLatitude(), location.getLongitude());
+        }
+        return DEFAULT_POINT;
     }
 
     private List<Address> getAddressesByName(String locationName) {
