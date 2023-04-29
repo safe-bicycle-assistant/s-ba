@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
@@ -55,6 +56,7 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
     private MapView map = null;
     private EditText editTextFrom = null;
     private EditText editTextTo = null;
+    private Button buttonStartDriving = null;
 
     private AddressesBottomSheetFragment addressesBottomSheetFragment = null;
 
@@ -199,6 +201,9 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
 
         BoundingBox boundingBox = getBoundingBox(waypoints);
         this.map.zoomToBoundingBox(boundingBox, true);
+
+        this.buttonStartDriving = findViewById(R.id.buttonStartDriving);
+        this.buttonStartDriving.setVisibility(View.VISIBLE);
 
         this.map.invalidate();
     }
