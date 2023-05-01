@@ -13,7 +13,8 @@ import java.util.List;
 public class RidingDB extends SQLiteOpenHelper {
     static final String DATABASE_NAME = "s-ba";
     public static final String TABLE_NAME = "RidingLog";
-    static final String TABLE_FORMAT = "(time BIGINT, length INT, averageSpeed DECIMAL(4,2), averageCadence DECIMAL(4,2))";
+
+    static final String TABLE_FORMAT = "(time BIGINT, length INT, maxSpeed INT, maxCadence DECIMAL(4,2), map TEXT , averageSpeed DECIMAL(4,2), averageCadence DECIMAL(4,2))";
     public RidingDB(Context context, int version) {
         super(context, DATABASE_NAME,null,version);
     }
@@ -30,9 +31,8 @@ public class RidingDB extends SQLiteOpenHelper {
 
     public void insert(long time, int length, double avgSpeed, double avgCadence) {
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL(String.format("INSERT INTO %s VALUES('%d','%d','%f','%f')",TABLE_NAME,time,length,avgSpeed,avgCadence));
+        db.execSQL(String.format("INSERT INTO %s(time, length, averageSpeed, averageCadence) VALUES('%d','%d','%f','%f')",TABLE_NAME,time,length,avgSpeed,avgCadence));
         db.close();
-
     }
     public Cursor getAllDateToCursor() {
         String query = "select *,1 _id from "+ TABLE_NAME;
