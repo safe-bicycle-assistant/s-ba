@@ -9,7 +9,6 @@ public enum AddressFor {
 
     AddressFor(int value) {
         this.value = value;
-    }
 
     public int toValue() {
         return this.value;
