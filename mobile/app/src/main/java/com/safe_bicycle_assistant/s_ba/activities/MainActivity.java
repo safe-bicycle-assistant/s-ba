@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 
 import com.safe_bicycle_assistant.s_ba.R;
@@ -56,9 +57,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        ImageView img = findViewById(R.id.imageView);
+        img.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //use SpinnableImageView Class
+            }
+        });
+
     }
 
 //    public void openMap(View view) {
 //
 //    }
 }
+
