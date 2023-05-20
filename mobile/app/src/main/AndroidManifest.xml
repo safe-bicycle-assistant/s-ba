@@ -23,6 +23,9 @@
             android:name=".activities.MapActivity"
             android:exported="false" />
         <activity
+            android:name=".activities.NavigationActivity"
+            android:exported="false" />
+        <activity
             android:name=".activities.MainActivity"
             android:exported="true">
             <intent-filter>

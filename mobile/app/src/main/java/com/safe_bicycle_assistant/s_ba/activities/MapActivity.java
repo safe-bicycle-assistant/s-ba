@@ -2,8 +2,11 @@ package com.safe_bicycle_assistant.s_ba.activities;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.location.Address;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
@@ -32,6 +35,7 @@ import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Overlay;
 import org.osmdroid.views.overlay.Polyline;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -106,27 +110,6 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
         Button buttonCurrentLocation = findViewById(R.id.buttonCurrentLocation);
         buttonCurrentLocation.setOnClickListener((v) ->
                 moveToPoint(mapManager.fetchCurrentGeoPoint()));
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        this.map.onResume();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        this.map.onPause();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        PermissionUtil.requestPermissions(
-                Arrays.asList(permissions).subList(0, grantResults.length),
-                this
-        );
     }
 
     private void initialize(GeoPoint initialPoint) {
@@ -258,18 +241,44 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
                 this.editTextTo.setText(mapManager.searchAddressTextBy(mapManager.from));
             }
 
-            Road road = mapManager.searchRoute(mapManager.to, mapManager.from);
-            drawRoute(road);
-            showRouteBottomSheet(road);
+            this.mapManager.road = mapManager.searchRoute(mapManager.to, mapManager.from);
+            drawRoute(this.mapManager.road);
+            showRouteBottomSheet(this.mapManager.road);
         }
     }
 
     @Override
     public void onStartDriving() {
+        Intent navigationIntent = new Intent(this, NavigationActivity.class);
+        navigationIntent.putExtra("to", (Parcelable) this.mapManager.to);
+        navigationIntent.putExtra("from", (Parcelable) this.mapManager.from);
+        navigationIntent.putExtra("road", this.mapManager.road);
+        startActivity(navigationIntent);
     }
 
     @Override
     public void onCancelRoute() {
         this.routeBottomSheetFragment.dismiss();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        this.map.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        this.map.onPause();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        PermissionUtil.requestPermissions(
+                Arrays.asList(permissions).subList(0, grantResults.length),
+                this
+        );
     }
 }
