@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Address;
 import android.os.Bundle;
-import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
@@ -15,6 +14,7 @@ import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
 
 import com.safe_bicycle_assistant.s_ba.managers.MapManager;
 import com.safe_bicycle_assistant.s_ba.map_fragments.AddressesBottomSheetFragment;
@@ -120,7 +120,7 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
         mapController.setZoom(17.0);
         mapController.setCenter(initialPoint);
 
-        Marker marker = getBasicMarker(DefinedOverlay.HERE.value, initialPoint);
+        Marker marker = getBasicMarker(DefinedOverlay.HERE.value, org.osmdroid.library.R.drawable.marker_default, initialPoint);
         this.map.getOverlays().add(marker);
 
         this.map.invalidate();
@@ -133,8 +133,8 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
 
         this.map.getOverlays().addAll(
                 Arrays.asList(
-                        getBasicMarker(DefinedOverlay.FROM.value, mapManager.from),
-                        getBasicMarker(DefinedOverlay.TO.value, mapManager.to)
+                        getBasicMarker(DefinedOverlay.FROM.value, org.osmdroid.library.R.drawable.marker_default, mapManager.from),
+                        getBasicMarker(DefinedOverlay.TO.value, org.osmdroid.library.R.drawable.marker_default, mapManager.to)
                 )
         );
 
@@ -150,7 +150,7 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
 
     private void moveToPoint(GeoPoint point) {
         removeMarker(DefinedOverlay.HERE.value);
-        this.map.getOverlays().add(getBasicMarker(DefinedOverlay.HERE.value, point));
+        this.map.getOverlays().add(getBasicMarker(DefinedOverlay.HERE.value, org.osmdroid.library.R.drawable.marker_default, point));
         this.map.getController().animateTo(point);
     }
 
@@ -177,11 +177,13 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
         this.routeBottomSheetFragment.show(getSupportFragmentManager(), "routeBottomSheet");
     }
 
-    private Marker getBasicMarker(String id, GeoPoint point) {
+    private Marker getBasicMarker(String id, int icon, GeoPoint point) {
         Marker marker = new Marker(this.map);
         marker.setOnMarkerClickListener((m, v) -> false);
         marker.setPosition(point);
         marker.setId(id);
+        marker.setIcon(AppCompatResources.getDrawable(this, icon));
+        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
         return marker;
     }
 
