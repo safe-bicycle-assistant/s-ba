@@ -6,10 +6,11 @@
     <string name="from">출발지</string>
     <string name="to">목적지</string>
     <string name="search_result">검색결과</string>
-    <string name="here">Here</string>
-    <string name="start_driving">Start</string>
+    <string name="here">현위치</string>
+    <string name="start_driving">주행시작</string>
     <string name="route">경로</string>
-    <string name="cancel">Cancel</string>
+    <string name="cancel">취소</string>
     <string name="zero_kmh">0km/h</string>
+    <string name="stop_driving">주행종료</string>
 
 </resources>
