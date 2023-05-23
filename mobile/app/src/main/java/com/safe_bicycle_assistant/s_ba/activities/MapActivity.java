@@ -39,7 +39,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class MapActivity extends AppCompatActivity implements AddressesBottomSheetFragment.MapBottomSheetListener, RouteBottomSheetFragment.RouteBottomSheetListener {
+public class MapActivity extends AppCompatActivity implements
+        AddressesBottomSheetFragment.MapBottomSheetListener,
+        RouteBottomSheetFragment.RouteBottomSheetListener {
 
     private MapView map;
     private EditText editTextFrom;
@@ -94,16 +96,18 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
         this.editTextFrom.setOnKeyListener((v, keyCode, event) -> {
             if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_ENTER) {
                 showAddressesBottomSheet(AddressFor.FROM, this.editTextFrom);
+                return true;
             }
-            return true;
+            return false;
         });
 
         this.editTextTo = findViewById(R.id.editTextTo);
         this.editTextTo.setOnKeyListener((v, keyCode, event) -> {
             if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_ENTER) {
                 showAddressesBottomSheet(AddressFor.TO, this.editTextTo);
+                return true;
             }
-            return true;
+            return false;
         });
 
         Button buttonCurrentLocation = findViewById(R.id.buttonCurrentLocation);
