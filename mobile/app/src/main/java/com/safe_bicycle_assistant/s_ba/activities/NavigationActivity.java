@@ -1,9 +1,14 @@
 package com.safe_bicycle_assistant.s_ba.activities;
 
 import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.LocationListener;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
@@ -24,11 +29,12 @@ import org.osmdroid.views.overlay.Polyline;
 
 import java.util.Arrays;
 
-public class NavigationActivity extends AppCompatActivity {
+public class NavigationActivity extends AppCompatActivity implements SensorEventListener {
 
     private MapView map;
     private MapManager mapManager;
     private IMapController mapController;
+    private SensorManager sensorManager;
 
     private enum DefinedOverlay {
         HERE("here"),
@@ -60,19 +66,33 @@ public class NavigationActivity extends AppCompatActivity {
         this.mapManager.road = getIntent().getParcelableExtra("road");
 
         this.mapController = this.map.getController();
+
+        TextView textSpeed = findViewById(R.id.textSpeed);
         LocationListener listener = location -> {
             this.mapManager.current.set(new GeoPoint(location.getLatitude(), location.getLongitude()));
             this.mapController.setCenter(mapManager.current.get());
             Marker marker = getBasicMarker(DefinedOverlay.HERE.value, org.osmdroid.library.R.drawable.person, this.mapManager.current.get());
             removeMarker(DefinedOverlay.HERE.value);
             this.map.getOverlays().add(marker);
+            textSpeed.setText((int)location.getSpeed() + "km/h");
         };
 
         this.mapManager.trackCurrentGeoPoint(listener);
 
+        this.sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        if (accelerometer != null) {
+            sensorManager.registerListener(this, accelerometer,
+                    SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        }
+        Sensor magneticField = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        if (magneticField != null) {
+            sensorManager.registerListener(this, magneticField,
+                    SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        }
+
         initialize(this.mapManager.current.get());
     }
-
     private void initialize(GeoPoint initialPoint) {
         this.map.setTileSource(TileSourceFactory.MAPNIK);
         this.map.setMultiTouchControls(true);
@@ -80,7 +100,7 @@ public class NavigationActivity extends AppCompatActivity {
         Marker marker = getBasicMarker(DefinedOverlay.HERE.value, org.osmdroid.library.R.drawable.person, initialPoint);
         this.map.getOverlays().add(marker);
 
-        this.mapController.setZoom(20.0);
+        this.mapController.setZoom(19.3);
         this.mapController.setCenter(initialPoint);
 
         drawRoute(this.mapManager.road);
@@ -122,6 +142,38 @@ public class NavigationActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onSensorChanged(SensorEvent event) {
+        final float[] accelerometers = new float[3];
+        final float[] magnetics = new float[3];
+
+        switch (event.sensor.getType()) {
+            case Sensor.TYPE_ACCELEROMETER:
+                System.arraycopy(event.values, 0, accelerometers, 0, event.values.length);
+                break;
+            case Sensor.TYPE_MAGNETIC_FIELD:
+                System.arraycopy(event.values, 0, magnetics, 0, event.values.length);
+                break;
+        }
+
+        float[] r = new float[9];
+        float[] i = new float[9];
+        SensorManager.getRotationMatrix(r, i, accelerometers, magnetics);
+
+        float[] angles = new float[3];
+        SensorManager.getOrientation(r, angles);
+
+        float yaw = (float) Math.toDegrees(angles[0]);
+        if (yaw < 0) yaw += 360;
+
+        this.map.setMapOrientation(360 - yaw);
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int i) {
+        // Do nothing
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         this.map.onResume();
@@ -130,6 +182,9 @@ public class NavigationActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
+
+        this.sensorManager.unregisterListener(this);
+
         this.map.onPause();
     }
 }

@@ -35,7 +35,6 @@ import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Overlay;
 import org.osmdroid.views.overlay.Polyline;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -251,6 +250,7 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
 
     @Override
     public void onStartDriving() {
+        this.routeBottomSheetFragment.dismiss();
         Intent navigationIntent = new Intent(this, NavigationActivity.class);
         navigationIntent.putExtra("to", (Parcelable) this.mapManager.to);
         navigationIntent.putExtra("from", (Parcelable) this.mapManager.from);
