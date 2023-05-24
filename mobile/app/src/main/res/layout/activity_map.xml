@@ -14,21 +14,39 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent">
 
-        <EditText
-            android:id="@+id/editTextFrom"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:maxLines="1"
-            android:hint="@string/from" />
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginTop="10dp"
+            android:hint="@string/from">
 
-        <EditText
-            android:id="@+id/editTextTo"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextFrom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:inputType="text"
+                android:maxLines="1" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:maxLines="1"
-            android:hint="@string/to" />
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginTop="5dp"
+            android:hint="@string/to">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextTo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:inputType="text"
+                android:maxLines="1" />
+        </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
     <LinearLayout
@@ -38,13 +56,14 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true">
 
-        <Button
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/buttonCurrentLocation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="15dp"
             android:layout_marginBottom="15dp"
-            android:text="@string/here" />
+            android:contentDescription="@string/here"
+            android:src="@drawable/here_location"/>
     </LinearLayout>
 
 </RelativeLayout>

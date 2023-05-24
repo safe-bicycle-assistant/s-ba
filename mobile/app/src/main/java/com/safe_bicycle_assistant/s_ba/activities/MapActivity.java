@@ -16,6 +16,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.textfield.TextInputEditText;
 import com.safe_bicycle_assistant.s_ba.managers.MapManager;
 import com.safe_bicycle_assistant.s_ba.map_fragments.AddressesBottomSheetFragment;
 import com.safe_bicycle_assistant.s_ba.R;
@@ -111,7 +113,7 @@ public class MapActivity extends AppCompatActivity implements
             return false;
         });
 
-        Button buttonCurrentLocation = findViewById(R.id.buttonCurrentLocation);
+        FloatingActionButton buttonCurrentLocation = findViewById(R.id.buttonCurrentLocation);
         buttonCurrentLocation.setOnClickListener((v) ->
                 moveToPoint(mapManager.fetchCurrentGeoPoint()));
     }
