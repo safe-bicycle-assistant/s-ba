@@ -38,6 +38,7 @@ import org.osmdroid.views.overlay.Polyline;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class MapActivity extends AppCompatActivity implements
         AddressesBottomSheetFragment.MapBottomSheetListener,
@@ -123,7 +124,7 @@ public class MapActivity extends AppCompatActivity implements
         mapController.setZoom(17.0);
         mapController.setCenter(initialPoint);
 
-        Marker marker = getBasicMarker(DefinedOverlay.HERE.value, org.osmdroid.library.R.drawable.marker_default, initialPoint);
+        Marker marker = getBasicMarker(DefinedOverlay.HERE.value, R.drawable.location, initialPoint);
         this.map.getOverlays().add(marker);
 
         this.map.invalidate();
@@ -136,8 +137,8 @@ public class MapActivity extends AppCompatActivity implements
 
         this.map.getOverlays().addAll(
                 Arrays.asList(
-                        getBasicMarker(DefinedOverlay.FROM.value, org.osmdroid.library.R.drawable.marker_default, mapManager.from),
-                        getBasicMarker(DefinedOverlay.TO.value, org.osmdroid.library.R.drawable.marker_default, mapManager.to)
+                        getBasicMarker(DefinedOverlay.FROM.value, R.drawable.marker_green, mapManager.from),
+                        getBasicMarker(DefinedOverlay.TO.value, R.drawable.marker_red, mapManager.to)
                 )
         );
 
@@ -153,7 +154,7 @@ public class MapActivity extends AppCompatActivity implements
 
     private void moveToPoint(GeoPoint point) {
         removeMarker(DefinedOverlay.HERE.value);
-        this.map.getOverlays().add(getBasicMarker(DefinedOverlay.HERE.value, org.osmdroid.library.R.drawable.marker_default, point));
+        this.map.getOverlays().add(getBasicMarker(DefinedOverlay.HERE.value, R.drawable.location, point));
         this.map.getController().animateTo(point);
     }
 
@@ -185,8 +186,10 @@ public class MapActivity extends AppCompatActivity implements
         marker.setOnMarkerClickListener((m, v) -> false);
         marker.setPosition(point);
         marker.setId(id);
+        if (!Objects.equals(id, DefinedOverlay.HERE.value)) {
+            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        }
         marker.setIcon(AppCompatResources.getDrawable(this, icon));
-        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
         return marker;
     }
 

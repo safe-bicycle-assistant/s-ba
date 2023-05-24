@@ -29,6 +29,7 @@ import org.osmdroid.views.overlay.Overlay;
 import org.osmdroid.views.overlay.Polyline;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 public class NavigationActivity extends AppCompatActivity implements SensorEventListener {
 
@@ -77,7 +78,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         LocationListener listener = location -> {
             this.mapManager.current.set(new GeoPoint(location.getLatitude(), location.getLongitude()));
             this.mapController.setCenter(mapManager.current.get());
-            Marker marker = getBasicMarker(DefinedOverlay.HERE.value, org.osmdroid.library.R.drawable.person, this.mapManager.current.get());
+            Marker marker = getBasicMarker(DefinedOverlay.HERE.value, R.drawable.directed_location, this.mapManager.current.get());
             removeMarker(DefinedOverlay.HERE.value);
             this.map.getOverlays().add(marker);
             textSpeed.setText((int)location.getSpeed() + "km/h");
@@ -95,7 +96,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         this.map.setTileSource(TileSourceFactory.MAPNIK);
         this.map.setMultiTouchControls(true);
 
-        Marker marker = getBasicMarker(DefinedOverlay.HERE.value, org.osmdroid.library.R.drawable.person, initialPoint);
+        Marker marker = getBasicMarker(DefinedOverlay.HERE.value, R.drawable.directed_location, initialPoint);
         this.map.getOverlays().add(marker);
 
         this.mapController.setZoom(19.3);
@@ -107,11 +108,8 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     }
 
     private void drawRoute(Road road) {
-        this.map.getOverlays().addAll(
-                Arrays.asList(
-                        getBasicMarker(DefinedOverlay.FROM.value, org.osmdroid.library.R.drawable.marker_default, mapManager.from),
-                        getBasicMarker(DefinedOverlay.TO.value, org.osmdroid.library.R.drawable.marker_default, mapManager.to)
-                )
+        this.map.getOverlays().add(
+                getBasicMarker(DefinedOverlay.TO.value, R.drawable.marker_red, mapManager.to)
         );
 
         Polyline routeOverlay = RoadManager.buildRoadOverlay(road);
@@ -181,8 +179,10 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
             float yaw = (float) Math.toDegrees(angles[0]);
             if (yaw < 0) yaw += 360;
 
-            // TODO: 방향이 올바르게 설정되는지 실단말에서 확인 필요.
-            this.map.setMapOrientation(yaw);
+            this.mapController.animateTo(null, null, 200L, 360 - yaw);
+
+            hasAccSensor = false;
+            hasMagSensor = false;
         }
     }
 
