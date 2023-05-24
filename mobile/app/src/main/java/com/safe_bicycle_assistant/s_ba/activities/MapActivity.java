@@ -9,7 +9,6 @@ import android.os.Parcelable;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
-import android.widget.Button;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
@@ -17,7 +16,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.textfield.TextInputEditText;
 import com.safe_bicycle_assistant.s_ba.managers.MapManager;
 import com.safe_bicycle_assistant.s_ba.map_fragments.AddressesBottomSheetFragment;
 import com.safe_bicycle_assistant.s_ba.R;
@@ -161,12 +159,13 @@ public class MapActivity extends AppCompatActivity implements
     }
 
     private void showAddressesBottomSheet(AddressFor addressFor, EditText view) {
-        List<Address> addresses = mapManager.searchAddressesBy(view.getText().toString(), mapManager.current.get());
+        ArrayList<Address> addresses = (ArrayList<Address>) mapManager.searchAddressesBy(
+                view.getText().toString(), mapManager.current.get());
         this.addressesBottomSheetFragment = new AddressesBottomSheetFragment();
 
         Bundle args = new Bundle();
         args.putInt("addressFor", addressFor.toValue());
-        args.putParcelableArrayList("addresses", (ArrayList<Address>) addresses);
+        args.putParcelableArrayList("addresses", addresses);
         this.addressesBottomSheetFragment.setArguments(args);
 
         this.addressesBottomSheetFragment.show(getSupportFragmentManager(), "mapBottomSheet");
@@ -174,7 +173,6 @@ public class MapActivity extends AppCompatActivity implements
 
     private void showRouteBottomSheet(Road road) {
         this.routeBottomSheetFragment = new RouteBottomSheetFragment();
-        this.routeBottomSheetFragment.setCancelable(false);
 
         Bundle args = new Bundle();
         args.putParcelable("road", road);
@@ -217,9 +215,9 @@ public class MapActivity extends AppCompatActivity implements
 
     private BoundingBox applyOffsets(BoundingBox box) {
         double northOffset = 0.04;
-        double eastOffset = 0.02;
+        double eastOffset = 0.01;
         double southOffset = 0.02;
-        double westOffset = 0.02;
+        double westOffset = 0.01;
 
         return new BoundingBox(
                 box.getActualNorth() + northOffset,
@@ -265,11 +263,6 @@ public class MapActivity extends AppCompatActivity implements
         navigationIntent.putExtra("from", (Parcelable) this.mapManager.from);
         navigationIntent.putExtra("road", this.mapManager.road);
         startActivity(navigationIntent);
-    }
-
-    @Override
-    public void onCancelRoute() {
-        this.routeBottomSheetFragment.dismiss();
     }
 
     @Override
