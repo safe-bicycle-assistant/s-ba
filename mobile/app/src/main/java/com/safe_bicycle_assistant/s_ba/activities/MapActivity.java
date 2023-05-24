@@ -159,16 +159,20 @@ public class MapActivity extends AppCompatActivity implements
     }
 
     private void showAddressesBottomSheet(AddressFor addressFor, EditText view) {
-        ArrayList<Address> addresses = (ArrayList<Address>) mapManager.searchAddressesBy(
-                view.getText().toString(), mapManager.current.get());
-        this.addressesBottomSheetFragment = new AddressesBottomSheetFragment();
+        try {
+            ArrayList<Address> addresses = (ArrayList<Address>) mapManager.searchAddressesBy(
+                    view.getText().toString(), mapManager.current.get());
+            this.addressesBottomSheetFragment = new AddressesBottomSheetFragment();
 
-        Bundle args = new Bundle();
-        args.putInt("addressFor", addressFor.toValue());
-        args.putParcelableArrayList("addresses", addresses);
-        this.addressesBottomSheetFragment.setArguments(args);
+            Bundle args = new Bundle();
+            args.putInt("addressFor", addressFor.toValue());
+            args.putParcelableArrayList("addresses", addresses);
+            this.addressesBottomSheetFragment.setArguments(args);
 
-        this.addressesBottomSheetFragment.show(getSupportFragmentManager(), "mapBottomSheet");
+            this.addressesBottomSheetFragment.show(getSupportFragmentManager(), "mapBottomSheet");
+        } catch (Exception ignored) {
+            // Do nothing
+        }
     }
 
     private void showRouteBottomSheet(Road road) {
