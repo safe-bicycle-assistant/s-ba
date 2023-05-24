@@ -8,6 +8,11 @@ import android.location.Address;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import androidx.annotation.NonNull;
 
 import com.safe_bicycle_assistant.s_ba.BuildConfig;
 
@@ -19,6 +24,7 @@ import org.osmdroid.bonuspack.routing.Road;
 import org.osmdroid.bonuspack.routing.RoadManager;
 import org.osmdroid.util.GeoPoint;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,7 +39,8 @@ public class MapManager {
 
     public final AtomicReference<GeoPoint> current = new AtomicReference<>();
     public GeoPoint from;
-    public GeoPoint to = null;
+    public GeoPoint to;
+    public Road road;
 
     private final LocationManager locationManager;
     private final LocationListener locationListener;
@@ -94,7 +101,6 @@ public class MapManager {
         return this.extractAddressText(this.searchAddressBy(point));
     }
 
-
     @SuppressLint("MissingPermission")
     public GeoPoint fetchCurrentGeoPoint() {
         this.locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, this.locationListener, null);
@@ -108,6 +114,14 @@ public class MapManager {
             return new GeoPoint(location.getLatitude(), location.getLongitude());
         }
         return this.DEFAULT_POINT;
+    }
+
+    @SuppressLint("MissingPermission")
+    public void trackCurrentGeoPoint(LocationListener listener) {
+        int minDistanceM = 3;
+        int minTimeMS = 50;
+        this.locationManager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER, minTimeMS, minDistanceM, listener, null);
     }
 
     private String extractAddressText(Address address) {
