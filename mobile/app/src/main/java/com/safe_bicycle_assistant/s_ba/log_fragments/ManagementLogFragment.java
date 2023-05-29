@@ -4,10 +4,13 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -32,6 +35,18 @@ public class ManagementLogFragment extends Fragment {
         for(int i = 0; i< 10; i++)
             managementDatabaseHelper.insert(System.currentTimeMillis(),ManagementDB.BRAKES | ManagementDB.TYRES);
         listView.setAdapter(new ManagementLogAdapter(getContext(),managementDatabaseHelper.getAllDateToCursor(),true));
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                ManagementLogDetailsFragment managementLogDetailsFragment = new ManagementLogDetailsFragment(i);
+//                FrameLayout container = getView().findViewById(R.id.fragment_container);
+                FragmentManager manager = getActivity().getSupportFragmentManager();
+                FragmentTransaction ft = manager.beginTransaction();
+                ft.replace(R.id.fragment_container,managementLogDetailsFragment);
+                ft.addToBackStack(null);
+                ft.commit();
+            }
+        });
 //        listView.setAdapter(new ArrayAdapter<String>(getContext(),android.R.layout.simple_list_item_1,managementDatabaseHelper.getAllData()));
     }
 

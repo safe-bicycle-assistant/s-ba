@@ -43,7 +43,7 @@ public class RidingDB extends SQLiteOpenHelper {
 //(time BIGINT, length INT, maxSpeed DECIMAL(4,2), maxCadence DECIMAL(4,2), map TEXT , averageSpeed DECIMAL(4,2), averageCadence DECIMAL(4,2))
     public void insert(long time, int length, double avgSpeed, double avgCadence, String map, double maxSpeed, double maxCadence) {
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL(String.format("INSERT INTO %s(time, length, averageSpeed, averageCadence,maxSpeed,maxCadence,map) VALUES('%d','%d','%f','%f','%f','%f','%s')",TABLE_NAME,time,length,avgSpeed,avgCadence,maxCadence,maxSpeed,map));
+        db.execSQL(String.format("INSERT INTO %s(time, length, averageSpeed, averageCadence,maxSpeed,maxCadence,map) VALUES('%d','%d','%f','%f','%f','%f','%s')",TABLE_NAME,time,length,avgSpeed,avgCadence,maxSpeed,maxCadence,map));
         db.close();
     }
     public Cursor getAllDataToCursor() {
@@ -62,7 +62,7 @@ public class RidingDB extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         Cursor c = db.rawQuery(query,null);
         c.moveToFirst();
-        while(i > 1)
+        while(i > 0 )
         {
             if(c.moveToNext())
                 i--;

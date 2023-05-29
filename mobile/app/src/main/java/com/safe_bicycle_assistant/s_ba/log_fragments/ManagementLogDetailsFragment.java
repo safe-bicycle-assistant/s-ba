@@ -17,38 +17,37 @@ import android.widget.TextView;
 
 import com.safe_bicycle_assistant.s_ba.R;
 import com.safe_bicycle_assistant.s_ba.Utils;
+import com.safe_bicycle_assistant.s_ba.db_helpers.ManagementDB;
 import com.safe_bicycle_assistant.s_ba.db_helpers.RidingDB;
 import com.safe_bicycle_assistant.s_ba.uis.RidingLogAdapter;
 
-public class RidingLogDetailsFragment extends Fragment {
+public class ManagementLogDetailsFragment extends Fragment {
     int index;
 
     final static String TAG= "RidingLogFragment";
-    static RidingDB ridingDatabaseHelper;
+    static ManagementDB managementDatabaseHelper;
     SQLiteDatabase db;
-    ImageView mapView;
+    ImageView toolsView;
+    TextView tyresView;
     TextView timeView;
-    TextView distanceView;
-    TextView maxSpeedView;
-    TextView avgSpeedView;
-    TextView maxCadenceView;
-    TextView avgCadenceView;
+    TextView wheelsView;
+    TextView brakesView;
 
-    public RidingLogDetailsFragment(int index) {
+
+    public ManagementLogDetailsFragment(int index) {
         this.index = index;
     }
     @Override
     public void onStart() {
         super.onStart();
-        mapView = getView().findViewById(R.id.mapImageView);
+        toolsView = getView().findViewById(R.id.mapImageView);
         timeView = getView().findViewById(R.id.timeTextView);
-        distanceView = getView().findViewById(R.id.lengthTextView);
-        maxSpeedView = getView().findViewById(R.id.maxSpeedTextView);
-        avgCadenceView = getView().findViewById(R.id.avgCadenceTextView);
-        avgSpeedView = getView().findViewById(R.id.avgSpeedTextView);
-        maxCadenceView = getView().findViewById(R.id.maxCadenceTextView);
-        ridingDatabaseHelper = new RidingDB(getContext(),1);
-        Cursor c = ridingDatabaseHelper.getDataByIndex(index);
+        wheelsView = getView().findViewById(R.id.wheelsTextView);
+        tyresView = getView().findViewById(R.id.tyresTextView);
+        brakesView = getView().findViewById(R.id.brakesTextView);
+
+        managementDatabaseHelper = new ManagementDB(getContext(),1);
+        Cursor c = managementDatabaseHelper.getDataByIndex(index);
 //        Cursor c = ridingDatabaseHelper.getAllDataToCursor();
 //        c.moveToFirst();
 //        for(int i = 0; i< index; i++)
@@ -65,17 +64,27 @@ public class RidingLogDetailsFragment extends Fragment {
 //            String bitmap = c.getString(5);
 //            mapView.setImageBitmap(Utils.string2Bitmap(bitmap));
             timeView.setText(""+Utils.DateToString( Utils.longToDate(c.getLong(0))));
-            distanceView.setText(""+c.getInt(RidingDB.LENGTH)+" km");
-            maxSpeedView.setText(""+c.getDouble(RidingDB.MAX_SPEED)+" km/h");
-            avgSpeedView.setText(""+c.getDouble(RidingDB.AVERAGE_SPEED)+" km/h");
-            avgCadenceView.setText(""+c.getDouble(RidingDB.AVERAGE_CADENCE)+" rpm");
-            maxCadenceView.setText(""+c.getDouble(RidingDB.MAX_CADENCE)+" rpm");
+            int managementBit = c.getInt(ManagementDB.CHANGE);
+            if ((managementBit&ManagementDB.TYRES) != 0)
+                tyresView.setText("O");
+            else
+                tyresView.setText("X");
+
+            if ((managementBit&ManagementDB.WHEELS) != 0)
+                wheelsView.setText("O");
+            else
+                wheelsView.setText("X");
+
+            if ((managementBit&ManagementDB.BRAKES) != 0)
+                brakesView.setText("O");
+            else
+                brakesView.setText("X");
         }
     }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_riding_log_details, container, false);
+        return inflater.inflate(R.layout.fragment_management_log_details, container, false);
     }
 }
