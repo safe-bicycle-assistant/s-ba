@@ -13,8 +13,14 @@ import java.util.List;
 public class RidingDB extends SQLiteOpenHelper {
     static final String DATABASE_NAME = "s-ba";
     public static final String TABLE_NAME = "RidingLog";
-
-    static final String TABLE_FORMAT = "(time BIGINT, length INT, maxSpeed INT, maxCadence DECIMAL(4,2), map TEXT , averageSpeed DECIMAL(4,2), averageCadence DECIMAL(4,2))";
+    public final static int TIME = 0;
+    public final static int LENGTH = 1;
+    public final static int AVERAGE_SPEED = 5;
+    public final static int AVERAGE_CADENCE = 6;
+    public final static int MAP = 4;
+    public final static int MAX_SPEED = 2;
+    public final static int MAX_CADENCE = 3;
+    static final String TABLE_FORMAT = "(time BIGINT, length INT, maxSpeed DECIMAL(4,2), maxCadence DECIMAL(4,2), map TEXT , averageSpeed DECIMAL(4,2), averageCadence DECIMAL(4,2))";
     public RidingDB(Context context, int version) {
         super(context, DATABASE_NAME,null,version);
     }
@@ -34,10 +40,35 @@ public class RidingDB extends SQLiteOpenHelper {
         db.execSQL(String.format("INSERT INTO %s(time, length, averageSpeed, averageCadence) VALUES('%d','%d','%f','%f')",TABLE_NAME,time,length,avgSpeed,avgCadence));
         db.close();
     }
-    public Cursor getAllDateToCursor() {
+//(time BIGINT, length INT, maxSpeed DECIMAL(4,2), maxCadence DECIMAL(4,2), map TEXT , averageSpeed DECIMAL(4,2), averageCadence DECIMAL(4,2))
+    public void insert(long time, int length, double avgSpeed, double avgCadence, String map, double maxSpeed, double maxCadence) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.execSQL(String.format("INSERT INTO %s(time, length, averageSpeed, averageCadence,maxSpeed,maxCadence,map) VALUES('%d','%d','%f','%f','%f','%f','%s')",TABLE_NAME,time,length,avgSpeed,avgCadence,maxCadence,maxSpeed,map));
+        db.close();
+    }
+    public Cursor getAllDataToCursor() {
         String query = "select *,1 _id from "+ TABLE_NAME;
         SQLiteDatabase db = getWritableDatabase();
         Cursor c = db.rawQuery(query,null);
+        return c;
+    }
+    public Cursor getDataByIndex(int i) {
+//        String query = "select * from "+TABLE_NAME+" limit 1 offset "+i;
+//        SQLiteDatabase db = getWritableDatabase();
+//        Cursor c = db.rawQuery(query,null);
+//        return c;
+
+        String query = "select *,1 _id from "+ TABLE_NAME;
+        SQLiteDatabase db = getWritableDatabase();
+        Cursor c = db.rawQuery(query,null);
+        c.moveToFirst();
+        while(i > 1)
+        {
+            if(c.moveToNext())
+                i--;
+            else
+                return null;
+        }
         return c;
     }
     public List<String> getAllData()
