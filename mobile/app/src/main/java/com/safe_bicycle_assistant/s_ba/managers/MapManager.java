@@ -118,7 +118,7 @@ public class MapManager {
 
     @SuppressLint("MissingPermission")
     public void trackCurrentGeoPoint(LocationListener listener) {
-        int minDistanceM = 3;
+        int minDistanceM = 2;
         int minTimeMS = 50;
         this.locationManager.requestLocationUpdates(
                 LocationManager.GPS_PROVIDER, minTimeMS, minDistanceM, listener, null);
