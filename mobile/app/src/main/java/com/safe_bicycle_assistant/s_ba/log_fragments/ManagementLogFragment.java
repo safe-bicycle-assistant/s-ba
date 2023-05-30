@@ -1,13 +1,18 @@
 package com.safe_bicycle_assistant.s_ba.log_fragments;
 
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -24,6 +29,9 @@ public class ManagementLogFragment extends Fragment {
     static ManagementDB managementDatabaseHelper;
     SQLiteDatabase db;
     ListView listView;
+
+
+
     @Override
     public void onStart() {
         super.onStart();
@@ -34,7 +42,7 @@ public class ManagementLogFragment extends Fragment {
         managementDatabaseHelper.onCreate(db);
         for(int i = 0; i< 10; i++)
             managementDatabaseHelper.insert(System.currentTimeMillis(),ManagementDB.BRAKES | ManagementDB.TYRES);
-        listView.setAdapter(new ManagementLogAdapter(getContext(),managementDatabaseHelper.getAllDateToCursor(),true));
+        listView.setAdapter(new ManagementLogAdapter(getContext(),managementDatabaseHelper.getAllDataToCursor(),true));
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {

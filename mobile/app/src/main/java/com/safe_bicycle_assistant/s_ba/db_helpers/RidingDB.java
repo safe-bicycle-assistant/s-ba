@@ -47,7 +47,7 @@ public class RidingDB extends SQLiteOpenHelper {
         db.close();
     }
     public Cursor getAllDataToCursor() {
-        String query = "select *,1 _id from "+ TABLE_NAME;
+        String query = "select *,1 _id from "+ TABLE_NAME+" order by time desc";
         SQLiteDatabase db = getWritableDatabase();
         Cursor c = db.rawQuery(query,null);
         return c;
@@ -58,7 +58,7 @@ public class RidingDB extends SQLiteOpenHelper {
 //        Cursor c = db.rawQuery(query,null);
 //        return c;
 
-        String query = "select *,1 _id from "+ TABLE_NAME;
+        String query = "select *,1 _id from "+ TABLE_NAME+" order by time desc";
         SQLiteDatabase db = getWritableDatabase();
         Cursor c = db.rawQuery(query,null);
         c.moveToFirst();
@@ -83,6 +83,14 @@ public class RidingDB extends SQLiteOpenHelper {
         }
         db.close();
         return items;
+    }
+
+    public Cursor getAllDataAfterTime(long millis)
+    {
+        String query = "select *,1 _id  from "+TABLE_NAME+" where time > "+millis+" order by time desc";
+        SQLiteDatabase db = getWritableDatabase();
+        Cursor c = db.rawQuery(query,null);
+        return c;
     }
 
 }

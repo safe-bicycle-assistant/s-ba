@@ -41,8 +41,8 @@ public class ManagementDB extends SQLiteOpenHelper {
 
     }
 
-    public Cursor getAllDateToCursor() {
-        String query = "select *,1 _id from "+ TABLE_NAME;
+    public Cursor getAllDataToCursor() {
+        String query = "select *,1 _id from "+ TABLE_NAME +" order by time desc";
         SQLiteDatabase db = getWritableDatabase();
         Cursor c = db.rawQuery(query,null);
         return c;
@@ -54,7 +54,7 @@ public class ManagementDB extends SQLiteOpenHelper {
 //        Cursor c = db.rawQuery(query,null);
 //        return c;
 
-        String query = "select *,1 _id from "+ TABLE_NAME;
+        String query = "select *,1 _id from "+ TABLE_NAME+" order by time desc";
         SQLiteDatabase db = getWritableDatabase();
         Cursor c = db.rawQuery(query,null);
         c.moveToFirst();
