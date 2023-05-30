@@ -96,6 +96,18 @@ public class RidingLogFragment extends Fragment {
                         return true;
                     }
                 }
+                //no tyre replacement
+                Cursor ridingCursor =ridingDatabaseHelper.getAllDataToCursor();
+                listView.setAdapter(new RidingLogAdapter(getContext(), ridingCursor, true));
+                ridingCursor.moveToFirst();
+                int totalDistance = 0;
+                while(ridingCursor.moveToNext())
+                {
+                    totalDistance += ridingCursor.getInt(RidingDB.LENGTH);
+                    TextView tv = getView().findViewById(R.id.totalDistanceTextView);
+                    tv.setText(""+totalDistance+" km");
+                }
+                return false;
             }
 
         }
