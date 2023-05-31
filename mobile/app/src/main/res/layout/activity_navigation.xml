@@ -17,21 +17,37 @@
         android:paddingTop="5dp"
         android:paddingBottom="5dp"
         android:paddingLeft="10dp"
-        android:paddingRight="10dp">
+        android:paddingRight="10dp"
+        android:orientation="horizontal"
+        android:gravity="center">
 
-        <TextView
-            android:id="@+id/textSpeed"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:text="@string/zero_kmh"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+            android:layout_weight="2">
+
+            <TextView
+                android:id="@+id/textSpeed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="15dp"
+                android:text="@string/zero_kmh"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textCadence"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/zero_rpm"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+        </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonStopDriving"
             style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/stop_driving" />
