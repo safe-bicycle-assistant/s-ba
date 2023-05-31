@@ -1,20 +1,30 @@
 package com.safe_bicycle_assistant.s_ba.activities;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.LocationListener;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.preference.PreferenceManager;
+import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 
+import com.safe_bicycle_assistant.s_ba.ActivityAIDL;
+import com.safe_bicycle_assistant.s_ba.ConnectionServiceAIDL;
 import com.safe_bicycle_assistant.s_ba.R;
+import com.safe_bicycle_assistant.s_ba.Services.ConnectionService;
 import com.safe_bicycle_assistant.s_ba.managers.MapManager;
 
 import org.osmdroid.api.IMapController;
@@ -28,9 +38,6 @@ import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Overlay;
 import org.osmdroid.views.overlay.Polyline;
 
-import java.util.Arrays;
-import java.util.Collections;
-
 public class NavigationActivity extends AppCompatActivity implements SensorEventListener {
 
     private MapView map;
@@ -42,6 +49,50 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     private boolean hasMagSensor = false;
     private final float[] accelerometers = new float[3];
     private final float[] magnetics = new float[3];
+
+    TextView textCadence = null;
+    ImageView imageWarning = null;
+
+    ConnectionServiceAIDL mConnectionServiceAIDL = null;
+
+    private final IBinder ActivityBinder = new ActivityAIDL.Stub() {
+        @Override
+        public void testConnection() { }
+
+        @Override
+        public void setTexts(float cadence, int detection) {
+            runOnUiThread(() -> {
+                final int DETECTION_THRESHOLD = 10000; // TODO: 값 튜닝 필요
+
+                if (detection >= DETECTION_THRESHOLD && imageWarning.getVisibility() == View.INVISIBLE) {
+                    imageWarning.setVisibility(View.VISIBLE);
+                } else if (imageWarning.getVisibility() == View.VISIBLE) {
+                    imageWarning.setVisibility(View.INVISIBLE);
+                }
+
+                textCadence.setText(String.format("%1f", cadence) + "RPM");
+            });
+        }
+    };
+
+    private final ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            mConnectionServiceAIDL = ConnectionServiceAIDL.Stub.asInterface(iBinder);
+            Bundle bundle = new Bundle();
+            bundle.putBinder("key", ActivityBinder);
+            try {
+                mConnectionServiceAIDL.reverseConnection(bundle);
+            } catch (RemoteException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            mConnectionServiceAIDL = null;
+        }
+    };
 
     private enum DefinedOverlay {
         HERE("here"),
@@ -74,6 +125,8 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
 
         this.mapController = this.map.getController();
 
+        this.imageWarning = findViewById(R.id.imageWarning);
+        this.textCadence = findViewById(R.id.textCadence);
         TextView textSpeed = findViewById(R.id.textSpeed);
         LocationListener listener = location -> {
             this.mapManager.current.set(new GeoPoint(location.getLatitude(), location.getLongitude()));
@@ -89,6 +142,9 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
 
         Button buttonStopDriving = findViewById(R.id.buttonStopDriving);
         buttonStopDriving.setOnClickListener((v) -> this.stopDriving());
+
+        Intent intent = new Intent(getApplicationContext(), ConnectionService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
         initialize(this.mapManager.current.get());
     }
@@ -201,7 +257,14 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     @Override
     public void onDestroy() {
         super.onDestroy();
+
         this.sensorManager.unregisterListener(this);
+        try {
+            this.mConnectionServiceAIDL.destroyService();
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+
         this.map.onDetach();
     }
 }

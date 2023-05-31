@@ -12,5 +12,7 @@
     <string name="cancel">취소</string>
     <string name="zero_kmh">0km/h</string>
     <string name="stop_driving">주행종료</string>
+    <string name="zero_rpm">0RPM</string>
+    <string name="warning">warning</string>
 
 </resources>
