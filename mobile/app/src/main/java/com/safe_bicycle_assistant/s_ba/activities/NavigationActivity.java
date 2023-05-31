@@ -13,8 +13,9 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
-import android.util.Log;
+import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -37,9 +38,6 @@ import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Overlay;
 import org.osmdroid.views.overlay.Polyline;
 
-import java.util.Arrays;
-import java.util.Collections;
-
 public class NavigationActivity extends AppCompatActivity implements SensorEventListener {
 
     private MapView map;
@@ -53,6 +51,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     private final float[] magnetics = new float[3];
 
     TextView textCadence = null;
+    ImageView imageWarning = null;
 
     ConnectionServiceAIDL mConnectionServiceAIDL = null;
 
@@ -63,7 +62,14 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         @Override
         public void setTexts(float cadence, int detection) {
             runOnUiThread(() -> {
-                Log.i("asdf", "Detection bit : " + detection);
+                final int DETECTION_THRESHOLD = 5;
+
+                if (detection >= DETECTION_THRESHOLD && imageWarning.getVisibility() == View.INVISIBLE) {
+                    imageWarning.setVisibility(View.VISIBLE);
+                } else if (imageWarning.getVisibility() == View.VISIBLE) {
+                    imageWarning.setVisibility(View.INVISIBLE);
+                }
+
                 textCadence.setText(String.format("%1f", cadence) + "RPM");
             });
         }
@@ -119,6 +125,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
 
         this.mapController = this.map.getController();
 
+        this.imageWarning = findViewById(R.id.imageWarning);
         this.textCadence = findViewById(R.id.textCadence);
         TextView textSpeed = findViewById(R.id.textSpeed);
         LocationListener listener = location -> {
