@@ -62,7 +62,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         @Override
         public void setTexts(float cadence, int detection) {
             runOnUiThread(() -> {
-                final int DETECTION_THRESHOLD = 10000; // TODO: 값 튜닝 필요
+                final int DETECTION_THRESHOLD = 50000;
 
                 if (detection >= DETECTION_THRESHOLD && imageWarning.getVisibility() == View.INVISIBLE) {
                     imageWarning.setVisibility(View.VISIBLE);
@@ -70,7 +70,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
                     imageWarning.setVisibility(View.INVISIBLE);
                 }
 
-                textCadence.setText(String.format("%1f", cadence) + "RPM");
+                textCadence.setText(String.format("%.1f", cadence) + "RPM");
             });
         }
     };
