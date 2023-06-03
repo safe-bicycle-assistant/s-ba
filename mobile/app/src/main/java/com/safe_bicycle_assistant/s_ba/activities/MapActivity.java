@@ -218,7 +218,7 @@ public class MapActivity extends AppCompatActivity implements
     }
 
     private BoundingBox applyOffsets(BoundingBox box) {
-        double northOffset = 0.04;
+        double northOffset = 0.02;
         double eastOffset = 0.01;
         double southOffset = 0.02;
         double westOffset = 0.01;
