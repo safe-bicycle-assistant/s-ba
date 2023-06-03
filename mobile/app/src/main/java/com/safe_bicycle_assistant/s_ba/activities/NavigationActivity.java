@@ -39,6 +39,9 @@ import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Overlay;
 import org.osmdroid.views.overlay.Polyline;
 
+import java.util.Collections;
+import java.util.List;
+
 public class NavigationActivity extends AppCompatActivity implements SensorEventListener {
 
     private MapView map;
@@ -60,6 +63,8 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     private float accCadence = 0;
     private float maxSpeed = 0;
     private float maxCadence = 0;
+
+    private final List<GeoPoint> pointPassed = Collections.emptyList();
 
     TextView textCadence = null;
     ImageView imageWarning = null;
@@ -144,6 +149,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         LocationListener listener = location -> {
             GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
             this.lengthPassed += geoPoint.distanceToAsDouble(this.mapManager.current.get());
+            this.pointPassed.add(geoPoint);
 
             this.mapManager.current.set(geoPoint);
             this.mapController.setCenter(mapManager.current.get());
