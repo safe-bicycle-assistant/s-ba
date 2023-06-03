@@ -21,6 +21,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.safe_bicycle_assistant.s_ba.ActivityAIDL;
 import com.safe_bicycle_assistant.s_ba.ConnectionServiceAIDL;
 import com.safe_bicycle_assistant.s_ba.R;
@@ -50,6 +51,16 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     private final float[] accelerometers = new float[3];
     private final float[] magnetics = new float[3];
 
+    private Thread stopwatch;
+    private int timeSpent = 0;
+    private float lengthPassed = 0;
+    private float curSpeed = 0;
+    private float curCadence = 0;
+    private float accSpeed = 0;
+    private float accCadence = 0;
+    private float maxSpeed = 0;
+    private float maxCadence = 0;
+
     TextView textCadence = null;
     ImageView imageWarning = null;
 
@@ -70,6 +81,8 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
                     imageWarning.setVisibility(View.INVISIBLE);
                 }
 
+                if (cadence > maxCadence) maxCadence = cadence;
+                curCadence = cadence;
                 textCadence.setText(String.format("%.1f", cadence) + "RPM");
             });
         }
@@ -129,12 +142,20 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         this.textCadence = findViewById(R.id.textCadence);
         TextView textSpeed = findViewById(R.id.textSpeed);
         LocationListener listener = location -> {
-            this.mapManager.current.set(new GeoPoint(location.getLatitude(), location.getLongitude()));
+            GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+            this.lengthPassed += geoPoint.distanceToAsDouble(this.mapManager.current.get());
+
+            this.mapManager.current.set(geoPoint);
             this.mapController.setCenter(mapManager.current.get());
+
             Marker marker = getBasicMarker(DefinedOverlay.HERE.value, R.drawable.directed_location, this.mapManager.current.get());
             removeMarker(DefinedOverlay.HERE.value);
             this.map.getOverlays().add(marker);
-            textSpeed.setText((int)location.getSpeed() + "km/h");
+
+            int speed = (int) location.getSpeed();
+            if (speed > maxSpeed) maxSpeed = speed;
+            curSpeed = speed;
+            textSpeed.setText(speed + "km/h");
         };
 
         this.mapManager.trackCurrentGeoPoint(listener);
@@ -147,6 +168,9 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
         initialize(this.mapManager.current.get());
+
+        this.stopwatch = new Thread(this::onEverySecond);
+        this.stopwatch.start();
     }
     private void initialize(GeoPoint initialPoint) {
         this.map.setTileSource(TileSourceFactory.MAPNIK);
@@ -208,7 +232,50 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     }
 
     private void stopDriving() {
-        this.finish();
+        this.stopwatch.interrupt();
+        this.stopwatch = null;
+
+        // TODO: DB에 통계 데이터 INSERT
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("라이딩 끝!")
+                .setMessage(
+                        "주행 시간: " + secToText(timeSpent) + "\n" +
+                        "주행 거리: " + String.format("%.1f", this.lengthPassed) + "m\n" +
+                        "평균 속력: " + String.format("%.1f", this.accSpeed / timeSpent) + "km/h\n" +
+                        "최고 속력: " + String.format("%.1f", this.maxSpeed) + "km/h\n" +
+                        "평균 케이던스: " + String.format("%.1f", this.accCadence / timeSpent) + "RPM\n" +
+                        "최고 케이던스: " + String.format("%.1f", this.maxCadence) + "RPM\n"
+                )
+                .setPositiveButton("확인", (d, w) -> this.finish())
+                .show();
+    }
+
+    private String secToText(int sec) {
+        if (sec >= 3600) {
+            String h = (int) (sec / 3600) + "시간";
+            if (sec % 3600 > 0) {
+                String m = (int) (sec % 3600 / 60) + "분";
+                return h + " " + m;
+            }
+            return h;
+        }  else if (sec > 60) {
+            return (int) (sec / 60) + "분";
+        }
+        return sec + "초";
+    }
+
+    private void onEverySecond() {
+        try {
+            while (true) {
+                this.timeSpent += 1;
+                this.accSpeed += curSpeed;
+                this.accCadence += curCadence;
+                Thread.sleep(1000);
+            }
+        } catch (Exception ignored) {
+            // Do nothing
+        }
     }
 
     @Override
