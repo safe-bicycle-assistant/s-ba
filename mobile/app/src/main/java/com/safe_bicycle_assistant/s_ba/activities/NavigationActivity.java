@@ -148,8 +148,9 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         TextView textSpeed = findViewById(R.id.textSpeed);
         LocationListener listener = location -> {
             GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-            this.lengthPassed += geoPoint.distanceToAsDouble(this.mapManager.current.get());
-            this.pointPassed.add(geoPoint);
+            double distance = geoPoint.distanceToAsDouble(this.mapManager.current.get());
+            this.lengthPassed += distance;
+            if (distance > 2) this.pointPassed.add(geoPoint);
 
             this.mapManager.current.set(geoPoint);
             this.mapController.setCenter(mapManager.current.get());
