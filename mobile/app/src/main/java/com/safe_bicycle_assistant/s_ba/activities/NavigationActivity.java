@@ -242,6 +242,9 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         this.stopwatch.interrupt();
         this.stopwatch = null;
 
+        float meanSpeed = ((this.accSpeed / timeSpent) * 3600) / 1000;
+        float meanCadence = (this.accCadence / timeSpent) * 60;
+
         // TODO: DB에 통계 데이터 INSERT
 
         new MaterialAlertDialogBuilder(this)
@@ -249,9 +252,9 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
                 .setMessage(
                         "주행 시간: " + secToText(timeSpent) + "\n" +
                         "주행 거리: " + String.format("%.1f", this.lengthPassed) + "m\n" +
-                        "평균 속력: " + String.format("%.1f", this.accSpeed / timeSpent) + "km/h\n" +
+                        "평균 속력: " + String.format("%.1f", meanSpeed) + "km/h\n" +
                         "최고 속력: " + String.format("%.1f", this.maxSpeed) + "km/h\n" +
-                        "평균 케이던스: " + String.format("%.1f", this.accCadence / timeSpent) + "RPM\n" +
+                        "평균 케이던스: " + String.format("%.1f", meanCadence) + "RPM\n" +
                         "최고 케이던스: " + String.format("%.1f", this.maxCadence) + "RPM\n"
                 )
                 .setPositiveButton("확인", (d, w) -> this.finish())
