@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.database.sqlite.SQLiteDatabase;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -26,6 +27,7 @@ import com.safe_bicycle_assistant.s_ba.ActivityAIDL;
 import com.safe_bicycle_assistant.s_ba.ConnectionServiceAIDL;
 import com.safe_bicycle_assistant.s_ba.R;
 import com.safe_bicycle_assistant.s_ba.Services.ConnectionService;
+import com.safe_bicycle_assistant.s_ba.db_helpers.RidingDB;
 import com.safe_bicycle_assistant.s_ba.managers.MapManager;
 
 import org.osmdroid.api.IMapController;
@@ -242,16 +244,28 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         this.stopwatch.interrupt();
         this.stopwatch = null;
 
-        // TODO: DB에 통계 데이터 INSERT
+        float meanSpeed = ((this.accSpeed / timeSpent) * 3600) / 1000;
+        float meanCadence = (this.accCadence / timeSpent) * 60;
+
+        if (this.lengthPassed >= 10) {
+            try {
+                RidingDB dbhelper = new RidingDB(this, 1);
+                SQLiteDatabase db = dbhelper.getWritableDatabase();
+                dbhelper.onCreate(db);
+                dbhelper.insert(System.currentTimeMillis(), (int) this.lengthPassed, meanSpeed, meanCadence);
+            } catch (Exception ignored) {
+                // Do nothing
+            }
+        }
 
         new MaterialAlertDialogBuilder(this)
                 .setTitle("라이딩 끝!")
                 .setMessage(
                         "주행 시간: " + secToText(timeSpent) + "\n" +
                         "주행 거리: " + String.format("%.1f", this.lengthPassed) + "m\n" +
-                        "평균 속력: " + String.format("%.1f", this.accSpeed / timeSpent) + "km/h\n" +
+                        "평균 속력: " + String.format("%.1f", meanSpeed) + "km/h\n" +
                         "최고 속력: " + String.format("%.1f", this.maxSpeed) + "km/h\n" +
-                        "평균 케이던스: " + String.format("%.1f", this.accCadence / timeSpent) + "RPM\n" +
+                        "평균 케이던스: " + String.format("%.1f", meanCadence) + "RPM\n" +
                         "최고 케이던스: " + String.format("%.1f", this.maxCadence) + "RPM\n"
                 )
                 .setPositiveButton("확인", (d, w) -> this.finish())
