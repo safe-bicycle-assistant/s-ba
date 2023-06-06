@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.database.sqlite.SQLiteDatabase;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -26,6 +27,7 @@ import com.safe_bicycle_assistant.s_ba.ActivityAIDL;
 import com.safe_bicycle_assistant.s_ba.ConnectionServiceAIDL;
 import com.safe_bicycle_assistant.s_ba.R;
 import com.safe_bicycle_assistant.s_ba.Services.ConnectionService;
+import com.safe_bicycle_assistant.s_ba.db_helpers.RidingDB;
 import com.safe_bicycle_assistant.s_ba.managers.MapManager;
 
 import org.osmdroid.api.IMapController;
@@ -245,7 +247,16 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         float meanSpeed = ((this.accSpeed / timeSpent) * 3600) / 1000;
         float meanCadence = (this.accCadence / timeSpent) * 60;
 
-        // TODO: DB에 통계 데이터 INSERT
+        if (this.lengthPassed >= 10) {
+            try {
+                RidingDB dbhelper = new RidingDB(this, 1);
+                SQLiteDatabase db = dbhelper.getWritableDatabase();
+                dbhelper.onCreate(db);
+                dbhelper.insert(System.currentTimeMillis(), (int) this.lengthPassed, meanSpeed, meanCadence);
+            } catch (Exception ignored) {
+                // Do nothing
+            }
+        }
 
         new MaterialAlertDialogBuilder(this)
                 .setTitle("라이딩 끝!")
