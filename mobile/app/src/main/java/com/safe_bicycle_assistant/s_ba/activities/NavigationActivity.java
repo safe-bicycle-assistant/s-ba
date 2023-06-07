@@ -41,7 +41,7 @@ import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Overlay;
 import org.osmdroid.views.overlay.Polyline;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 public class NavigationActivity extends AppCompatActivity implements SensorEventListener {
@@ -66,7 +66,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     private float maxSpeed = 0;
     private float maxCadence = 0;
 
-    private final List<GeoPoint> pointPassed = Collections.emptyList();
+    private List<GeoPoint> pointPassed = new ArrayList<>();
 
     TextView textCadence = null;
     ImageView imageWarning = null;
@@ -241,10 +241,12 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     }
 
     private void stopDriving() {
-        this.stopwatch.interrupt();
-        this.stopwatch = null;
+        if (this.stopwatch != null) {
+            this.stopwatch.interrupt();
+            this.stopwatch = null;
+        }
 
-        float meanSpeed = ((this.accSpeed / timeSpent) * 3600) / 1000;
+        float meanSpeed = this.accSpeed / timeSpent;
         float meanCadence = (this.accCadence / timeSpent) * 60;
 
         if (this.lengthPassed >= 10) {
