@@ -4,20 +4,21 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.LocationListener;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -31,26 +32,21 @@ import com.safe_bicycle_assistant.s_ba.ActivityAIDL;
 import com.safe_bicycle_assistant.s_ba.ConnectionServiceAIDL;
 import com.safe_bicycle_assistant.s_ba.R;
 import com.safe_bicycle_assistant.s_ba.Services.ConnectionService;
-import com.safe_bicycle_assistant.s_ba.Utils;
 import com.safe_bicycle_assistant.s_ba.db_helpers.RidingDB;
 import com.safe_bicycle_assistant.s_ba.managers.MapManager;
 
+import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.bonuspack.routing.Road;
 import org.osmdroid.bonuspack.routing.RoadManager;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
-import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.Projection;
 import org.osmdroid.views.overlay.Marker;
-import org.osmdroid.views.overlay.Overlay;
 import org.osmdroid.views.overlay.Polyline;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -164,11 +160,8 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
             if (distance > 1) this.pointPassed.add(this.gson.toJson(geoPoint));
 
             this.mapManager.current.set(geoPoint);
-            this.mapController.setCenter(this.mapManager.current.get());
-
-            if (this.hereMarker != null) this.map.getOverlays().remove(this.hereMarker);
-            this.hereMarker = getBasicMarker(DefinedOverlay.HERE.value, R.drawable.directed_location, this.mapManager.current.get());
-            this.map.getOverlays().add(this.hereMarker);
+            animateMarker(this.hereMarker, this.mapManager.current.get());
+            this.mapController.animateTo(this.mapManager.current.get());
 
             int speed = (int) (location.getSpeed() * 3.6);
             if (speed > this.maxSpeed) this.maxSpeed = speed;
@@ -273,6 +266,28 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
             return (int) (sec / 60) + "분";
         }
         return sec + "초";
+    }
+
+    private void animateMarker(final Marker marker, final GeoPoint toPosition) {
+        Handler handler = new Handler();
+        long start = SystemClock.uptimeMillis();
+        Projection proj = map.getProjection();
+        Point startPoint = proj.toPixels(marker.getPosition(), null);
+        IGeoPoint startGeoPoint = proj.fromPixels(startPoint.x, startPoint.y);
+        long duration = 500;
+        LinearInterpolator interpolator = new LinearInterpolator();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                long elapsed = SystemClock.uptimeMillis() - start;
+                float t = interpolator.getInterpolation((float) elapsed / duration);
+                double lng = t * toPosition.getLongitude() + (1 - t) * startGeoPoint.getLongitude();
+                double lat = t * toPosition.getLatitude() + (1 - t) * startGeoPoint.getLatitude();
+                marker.setPosition(new GeoPoint(lat, lng));
+                if (t < 1.0) handler.postDelayed(this, 15);
+                map.postInvalidate();
+            }
+        });
     }
 
     @Override
