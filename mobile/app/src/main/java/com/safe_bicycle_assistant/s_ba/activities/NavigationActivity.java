@@ -25,6 +25,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.gson.Gson;
 import com.safe_bicycle_assistant.s_ba.ActivityAIDL;
 import com.safe_bicycle_assistant.s_ba.ConnectionServiceAIDL;
 import com.safe_bicycle_assistant.s_ba.R;
@@ -38,6 +39,7 @@ import org.osmdroid.bonuspack.routing.Road;
 import org.osmdroid.bonuspack.routing.RoadManager;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
@@ -45,6 +47,9 @@ import org.osmdroid.views.overlay.Overlay;
 import org.osmdroid.views.overlay.Polyline;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -156,7 +161,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
             GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
             double distance = geoPoint.distanceToAsDouble(this.mapManager.current.get());
             this.lengthPassed += distance;
-            if (distance > 2) this.pointPassed.add(geoPoint);
+            if (distance > 1) this.pointPassed.add(geoPoint);
 
             this.mapManager.current.set(geoPoint);
             this.mapController.setCenter(mapManager.current.get());
@@ -255,8 +260,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
 
         try {
             RidingDB dbhelper = new RidingDB(this, 1);
-            SQLiteDatabase db = dbhelper.getWritableDatabase();
-            String encoded = toEncodedBitmap(this.map);
+            String encoded = new Gson().toJson(this.pointPassed);
             dbhelper.insert(System.currentTimeMillis(), (int) this.lengthPassed, meanSpeed, meanCadence, encoded, maxSpeed, maxCadence);
         } catch (Exception ignored) {
             // Do nothing
@@ -274,16 +278,6 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
                 )
                 .setPositiveButton("확인", (d, w) -> this.finish())
                 .show();
-    }
-
-    public static String toEncodedBitmap(View view) {
-        Bitmap b = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas c = new Canvas(b);
-        view.layout(0,0, view.getWidth(),view.getHeight());
-        view.draw(c);
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        b.compress(Bitmap.CompressFormat.JPEG, 60, outputStream);
-        return Utils.bitmap2String(b);
     }
 
     private String secToText(int sec) {
