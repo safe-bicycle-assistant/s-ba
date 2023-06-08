@@ -7,6 +7,7 @@ import android.content.ServiceConnection;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -65,13 +66,9 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     private final float[] accelerometers = new float[3];
     private final float[] magnetics = new float[3];
 
-    private Thread stopwatch;
-    private int timeSpent = 0;
     private float lengthPassed = 0;
-    private float curSpeed = 0;
-    private float curCadence = 0;
-    private float accSpeed = 0;
-    private float accCadence = 0;
+    private float meanSpeed = 0;
+    private float meanCadence = 0;
     private float maxSpeed = 0;
     private float maxCadence = 0;
 
@@ -98,7 +95,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
                 }
 
                 if (cadence > maxCadence) maxCadence = cadence;
-                curCadence = cadence;
+                meanCadence = (meanCadence + cadence) / 2;
                 textCadence.setText(String.format("%.1f", cadence) + "RPM");
             });
         }
@@ -170,9 +167,9 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
             removeMarker(DefinedOverlay.HERE.value);
             this.map.getOverlays().add(marker);
 
-            int speed = (int) location.getSpeed();
+            int speed = (int) (location.getSpeed() * 3.6);
             if (speed > maxSpeed) maxSpeed = speed;
-            curSpeed = speed;
+            meanSpeed = (meanSpeed + speed) / 2;
             textSpeed.setText(speed + "km/h");
         };
 
@@ -186,9 +183,6 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
         initialize(this.mapManager.current.get());
-
-        this.stopwatch = new Thread(this::onEverySecond);
-        this.stopwatch.start();
     }
     private void initialize(GeoPoint initialPoint) {
         this.map.setTileSource(TileSourceFactory.MAPNIK);
@@ -213,6 +207,8 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         Polyline routeOverlay = RoadManager.buildRoadOverlay(road);
         routeOverlay.setId(DefinedOverlay.ROUTE.value);
         routeOverlay.getOutlinePaint().setStrokeWidth(20.0f);
+        routeOverlay.getOutlinePaint().setARGB(255, 0, 139, 236);
+        routeOverlay.getOutlinePaint().setStrokeCap(Paint.Cap.ROUND);
         this.map.getOverlays().add(routeOverlay);
     }
 
@@ -250,18 +246,11 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     }
 
     private void stopDriving() {
-        if (this.stopwatch != null) {
-            this.stopwatch.interrupt();
-            this.stopwatch = null;
-        }
-
-        float meanSpeed = this.accSpeed / timeSpent;
-        float meanCadence = this.accCadence / timeSpent;
-
         try {
             RidingDB dbhelper = new RidingDB(this, 1);
             String encoded = new Gson().toJson(this.pointPassed);
-            dbhelper.insert(System.currentTimeMillis(), (int) this.lengthPassed, meanSpeed, meanCadence, encoded, maxSpeed, maxCadence);
+            dbhelper.insert(System.currentTimeMillis(), (int) this.lengthPassed,
+                    this.meanSpeed,this.meanCadence, encoded, this.maxSpeed, this.maxCadence);
         } catch (Exception ignored) {
             // Do nothing
         }
@@ -269,11 +258,10 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         new MaterialAlertDialogBuilder(this)
                 .setTitle("라이딩 끝!")
                 .setMessage(
-                        "주행 시간: " + secToText(timeSpent) + "\n" +
                         "주행 거리: " + String.format("%.1f", this.lengthPassed) + "m\n" +
-                        "평균 속력: " + String.format("%.1f", meanSpeed) + "km/h\n" +
+                        "평균 속력: " + String.format("%.1f", this.meanSpeed) + "km/h\n" +
                         "최고 속력: " + String.format("%.1f", this.maxSpeed) + "km/h\n" +
-                        "평균 케이던스: " + String.format("%.1f", meanCadence) + "RPM\n" +
+                        "평균 케이던스: " + String.format("%.1f", this.meanCadence) + "RPM\n" +
                         "최고 케이던스: " + String.format("%.1f", this.maxCadence) + "RPM\n"
                 )
                 .setPositiveButton("확인", (d, w) -> this.finish())
@@ -292,19 +280,6 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
             return (int) (sec / 60) + "분";
         }
         return sec + "초";
-    }
-
-    private void onEverySecond() {
-        try {
-            while (true) {
-                this.timeSpent += 1;
-                this.accSpeed += curSpeed;
-                this.accCadence += curCadence;
-                Thread.sleep(1000);
-            }
-        } catch (Exception ignored) {
-            // Do nothing
-        }
     }
 
     @Override
