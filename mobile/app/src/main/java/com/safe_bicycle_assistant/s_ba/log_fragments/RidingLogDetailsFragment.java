@@ -2,6 +2,7 @@ package com.safe_bicycle_assistant.s_ba.log_fragments;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Paint;
 import android.os.Bundle;
 
 import androidx.appcompat.content.res.AppCompatResources;
@@ -94,16 +95,15 @@ public class RidingLogDetailsFragment extends Fragment {
             mapView.getOverlays().addAll(
                     Arrays.asList(
                             getBasicMarker("from", R.drawable.marker_green, path.get(0)),
-                            getBasicMarker("to", R.drawable.marker_red, path.get(1))
+                            getBasicMarker("to", R.drawable.marker_red, path.get(path.size() - 1))
                     )
             );
 
             Polyline line = new Polyline(mapView);
-            for (GeoPoint point : path) {
-                line.addPoint(point);
-            }
+            line.setPoints(path);
             line.getOutlinePaint().setStrokeWidth(20.f);
-            line.getOutlinePaint().setARGB(1, 0, 139, 236);
+            line.getOutlinePaint().setARGB(255, 0, 139, 236);
+            line.getOutlinePaint().setStrokeCap(Paint.Cap.ROUND);
             mapView.getOverlays().add(line);
 
             IMapController mapController = mapView.getController();

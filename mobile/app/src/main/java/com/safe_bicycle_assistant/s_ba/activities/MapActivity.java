@@ -3,6 +3,7 @@ package com.safe_bicycle_assistant.s_ba.activities;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Paint;
 import android.location.Address;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -145,6 +146,8 @@ public class MapActivity extends AppCompatActivity implements
         Polyline routeOverlay = RoadManager.buildRoadOverlay(road);
         routeOverlay.setId(DefinedOverlay.ROUTE.value);
         routeOverlay.getOutlinePaint().setStrokeWidth(20.0f);
+        routeOverlay.getOutlinePaint().setARGB(255, 0, 139, 236);
+        routeOverlay.getOutlinePaint().setStrokeCap(Paint.Cap.ROUND);
         this.map.getOverlays().add(routeOverlay);
 
         this.map.zoomToBoundingBox(applyOffsets(road.mBoundingBox), true);
