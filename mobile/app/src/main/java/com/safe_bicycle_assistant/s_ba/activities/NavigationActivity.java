@@ -16,7 +16,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
-import android.util.Base64;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -30,6 +29,7 @@ import com.safe_bicycle_assistant.s_ba.ActivityAIDL;
 import com.safe_bicycle_assistant.s_ba.ConnectionServiceAIDL;
 import com.safe_bicycle_assistant.s_ba.R;
 import com.safe_bicycle_assistant.s_ba.Services.ConnectionService;
+import com.safe_bicycle_assistant.s_ba.Utils;
 import com.safe_bicycle_assistant.s_ba.db_helpers.RidingDB;
 import com.safe_bicycle_assistant.s_ba.managers.MapManager;
 
@@ -86,9 +86,9 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
             runOnUiThread(() -> {
                 final int DETECTION_THRESHOLD = 50000;
 
-                if (detection >= DETECTION_THRESHOLD && imageWarning.getVisibility() == View.INVISIBLE) {
+                if (detection >= DETECTION_THRESHOLD) {
                     imageWarning.setVisibility(View.VISIBLE);
-                } else if (imageWarning.getVisibility() == View.VISIBLE) {
+                } else {
                     imageWarning.setVisibility(View.INVISIBLE);
                 }
 
@@ -251,18 +251,15 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         }
 
         float meanSpeed = this.accSpeed / timeSpent;
-        float meanCadence = (this.accCadence / timeSpent) * 60;
+        float meanCadence = this.accCadence / timeSpent;
 
-        if (this.lengthPassed >= 10) {
-            try {
-                RidingDB dbhelper = new RidingDB(this, 1);
-                SQLiteDatabase db = dbhelper.getWritableDatabase();
-                dbhelper.onCreate(db);
-                String encoded = toEncodedBitmap(this.map);
-                dbhelper.insert(System.currentTimeMillis(), (int) this.lengthPassed, meanSpeed, meanCadence, encoded, maxSpeed, maxCadence);
-            } catch (Exception ignored) {
-                // Do nothing
-            }
+        try {
+            RidingDB dbhelper = new RidingDB(this, 1);
+            SQLiteDatabase db = dbhelper.getWritableDatabase();
+            String encoded = toEncodedBitmap(this.map);
+            dbhelper.insert(System.currentTimeMillis(), (int) this.lengthPassed, meanSpeed, meanCadence, encoded, maxSpeed, maxCadence);
+        } catch (Exception ignored) {
+            // Do nothing
         }
 
         new MaterialAlertDialogBuilder(this)
@@ -286,7 +283,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         view.draw(c);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         b.compress(Bitmap.CompressFormat.JPEG, 60, outputStream);
-        return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT);
+        return Utils.bitmap2String(b);
     }
 
     private String secToText(int sec) {

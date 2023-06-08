@@ -62,8 +62,8 @@ public class RidingLogDetailsFragment extends Fragment {
         }
         else
         {
-//            String bitmap = c.getString(5);
-//            mapView.setImageBitmap(Utils.string2Bitmap(bitmap));
+            String bitmap = c.getString(RidingDB.MAP);
+            mapView.setImageBitmap(Utils.string2Bitmap(bitmap));
             timeView.setText(""+Utils.DateToString( Utils.longToDate(c.getLong(0))));
             distanceView.setText(""+c.getInt(RidingDB.LENGTH)+" km");
             maxSpeedView.setText(""+c.getDouble(RidingDB.MAX_SPEED)+" km/h");
