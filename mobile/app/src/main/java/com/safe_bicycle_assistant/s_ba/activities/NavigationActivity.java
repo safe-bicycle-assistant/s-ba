@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -14,6 +16,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
+import android.util.Base64;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -41,6 +44,7 @@ import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Overlay;
 import org.osmdroid.views.overlay.Polyline;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -254,7 +258,8 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
                 RidingDB dbhelper = new RidingDB(this, 1);
                 SQLiteDatabase db = dbhelper.getWritableDatabase();
                 dbhelper.onCreate(db);
-                dbhelper.insert(System.currentTimeMillis(), (int) this.lengthPassed, meanSpeed, meanCadence);
+                String encoded = toEncodedBitmap(this.map);
+                dbhelper.insert(System.currentTimeMillis(), (int) this.lengthPassed, meanSpeed, meanCadence, encoded, maxSpeed, maxCadence);
             } catch (Exception ignored) {
                 // Do nothing
             }
@@ -272,6 +277,16 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
                 )
                 .setPositiveButton("확인", (d, w) -> this.finish())
                 .show();
+    }
+
+    public static String toEncodedBitmap(View view) {
+        Bitmap b = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(b);
+        view.layout(0,0, view.getWidth(),view.getHeight());
+        view.draw(c);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        b.compress(Bitmap.CompressFormat.JPEG, 60, outputStream);
+        return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT);
     }
 
     private String secToText(int sec) {
