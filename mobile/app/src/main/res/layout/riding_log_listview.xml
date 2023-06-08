@@ -13,7 +13,7 @@
         android:orientation="horizontal"
         >
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/riding_log_listview_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -26,14 +26,14 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/riding_log_listview_length"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="length" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/riding_log_listview_avgspeed"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

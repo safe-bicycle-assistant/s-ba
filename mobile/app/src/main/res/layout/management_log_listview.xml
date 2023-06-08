@@ -8,12 +8,12 @@
 
 
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/management_log_listview_time"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="time" />
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/management_log_listview_num"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
