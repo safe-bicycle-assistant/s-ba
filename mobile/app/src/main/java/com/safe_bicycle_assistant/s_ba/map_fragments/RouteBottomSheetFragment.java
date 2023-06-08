@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.safe_bicycle_assistant.s_ba.R;
 
@@ -25,16 +26,15 @@ public class RouteBottomSheetFragment extends BottomSheetDialogFragment {
         buttonStartDriving.setOnClickListener((buttonView) ->
                 this.mListener.onStartDriving());
 
-        Button buttonCancelRoute  = view.findViewById(R.id.buttonCancelRoute);
-        buttonCancelRoute.setOnClickListener((buttonView) ->
-                this.mListener.onCancelRoute());
-
         Bundle args = getArguments();
         if (args != null) {
             Road road = args.getParcelable("road");
 
-            TextView textRouteInfo = view.findViewById(R.id.textRouteInfo);
-            textRouteInfo.setText(road.getLengthDurationText(getContext(), -1));
+            TextView textRouteDuration = view.findViewById(R.id.textRouteDuration);
+            textRouteDuration.setText(getDurationText(road.mDuration));
+
+            TextView textRouteDistance = view.findViewById(R.id.textRouteDistance);
+            textRouteDistance.setText(getDistanceText(road.mLength));
         }
 
         this.mListener = (RouteBottomSheetListener) getContext();
@@ -44,6 +44,33 @@ public class RouteBottomSheetFragment extends BottomSheetDialogFragment {
 
     public interface RouteBottomSheetListener {
         void onStartDriving();
-        void onCancelRoute();
+    }
+
+    private static String getDistanceText(double distance) {
+        String result;
+
+        if (distance >= 100.0) {
+            result = (int)(distance) + "km";
+        } else if (distance >= 1.0) {
+            result = Math.round(distance * 10) / 10.0 + "km";
+        } else {
+            result = (int)(distance * 1000) + "m";
+        }
+
+        return result;
+    }
+
+    private String getDurationText(double duration) {
+        int totalSeconds = (int) duration;
+        int hours = totalSeconds / 3600;
+        int minutes = (totalSeconds / 60) - (hours * 60);
+        int seconds = (totalSeconds % 60);
+
+        String result = "";
+        if (hours != 0) result += hours + "시간 ";
+        if (minutes != 0) result += minutes + "분 ";
+        if (hours == 0 && minutes == 0) result += seconds + "초 ";
+
+        return result;
     }
 }
