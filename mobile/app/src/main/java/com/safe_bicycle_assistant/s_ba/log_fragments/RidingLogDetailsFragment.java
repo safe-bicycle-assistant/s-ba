@@ -47,6 +47,7 @@ public class RidingLogDetailsFragment extends Fragment {
     TextView avgSpeedView;
     TextView maxCadenceView;
     TextView avgCadenceView;
+    private final Gson gson = new Gson();
 
     public RidingLogDetailsFragment(int index) {
         this.index = index;
@@ -76,8 +77,7 @@ public class RidingLogDetailsFragment extends Fragment {
         }
         else
         {
-            ArrayList<GeoPoint> path = new Gson().fromJson(c.getString(RidingDB.MAP), new TypeToken<ArrayList<GeoPoint>>(){}.getType());
-            drawRoute(path);
+            drawRoute(gson.fromJson(c.getString(RidingDB.MAP), new TypeToken<ArrayList<String>>(){}.getType()));
             timeView.setText(""+Utils.DateToString( Utils.longToDate(c.getLong(0))));
             distanceView.setText(""+c.getInt(RidingDB.LENGTH)+" km");
             maxSpeedView.setText(""+c.getDouble(RidingDB.MAX_SPEED)+" km/h");
@@ -87,27 +87,29 @@ public class RidingLogDetailsFragment extends Fragment {
         }
     }
 
-    private void drawRoute(ArrayList<GeoPoint> path) {
-        if (path.size() > 1) {
+    private void drawRoute(ArrayList<String> pathJson) {
+        if (pathJson.size() > 1) {
             mapView.setTileSource(TileSourceFactory.MAPNIK);
             mapView.setMultiTouchControls(true);
 
+            GeoPoint firstPoint = gson.fromJson(pathJson.get(0), GeoPoint.class);
+            GeoPoint lastPoint = gson.fromJson(pathJson.get(pathJson.size() - 1), GeoPoint.class);
             mapView.getOverlays().addAll(
                     Arrays.asList(
-                            getBasicMarker("from", R.drawable.marker_green, path.get(0)),
-                            getBasicMarker("to", R.drawable.marker_red, path.get(path.size() - 1))
+                            getBasicMarker("from", R.drawable.marker_green, firstPoint),
+                            getBasicMarker("to", R.drawable.marker_red, lastPoint)
                     )
             );
 
             Polyline line = new Polyline(mapView);
-            line.setPoints(path);
+            for (String json : pathJson) line.addPoint(gson.fromJson(json, GeoPoint.class));
             line.getOutlinePaint().setStrokeWidth(20.f);
             line.getOutlinePaint().setARGB(255, 0, 139, 236);
             line.getOutlinePaint().setStrokeCap(Paint.Cap.ROUND);
             mapView.getOverlays().add(line);
 
             IMapController mapController = mapView.getController();
-            mapController.setCenter(path.get(0));
+            mapController.setCenter(firstPoint);
             mapController.setZoom(15.0);
 //            mapView.zoomToBoundingBox(line.getBounds(), false);
             mapView.invalidate();

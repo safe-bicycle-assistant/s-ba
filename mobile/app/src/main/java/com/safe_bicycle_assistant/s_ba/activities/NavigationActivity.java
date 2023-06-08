@@ -60,6 +60,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     private MapManager mapManager;
     private IMapController mapController;
     private SensorManager sensorManager;
+    private final Gson gson = new Gson();
 
     private boolean hasAccSensor = false;
     private boolean hasMagSensor = false;
@@ -72,7 +73,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     private float maxSpeed = 0;
     private float maxCadence = 0;
 
-    private List<GeoPoint> pointPassed = new ArrayList<>();
+    private final List<String> pointPassed = new ArrayList<>();
 
     TextView textCadence = null;
     ImageView imageWarning = null;
@@ -133,6 +134,8 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         }
     }
 
+    private Marker hereMarker = null;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -158,18 +161,18 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
             GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
             double distance = geoPoint.distanceToAsDouble(this.mapManager.current.get());
             this.lengthPassed += distance;
-            if (distance > 1) this.pointPassed.add(geoPoint);
+            if (distance > 1) this.pointPassed.add(this.gson.toJson(geoPoint));
 
             this.mapManager.current.set(geoPoint);
-            this.mapController.setCenter(mapManager.current.get());
+            this.mapController.setCenter(this.mapManager.current.get());
 
-            Marker marker = getBasicMarker(DefinedOverlay.HERE.value, R.drawable.directed_location, this.mapManager.current.get());
-            removeMarker(DefinedOverlay.HERE.value);
-            this.map.getOverlays().add(marker);
+            if (this.hereMarker != null) this.map.getOverlays().remove(this.hereMarker);
+            this.hereMarker = getBasicMarker(DefinedOverlay.HERE.value, R.drawable.directed_location, this.mapManager.current.get());
+            this.map.getOverlays().add(this.hereMarker);
 
             int speed = (int) (location.getSpeed() * 3.6);
-            if (speed > maxSpeed) maxSpeed = speed;
-            meanSpeed = (meanSpeed + speed) / 2;
+            if (speed > this.maxSpeed) this.maxSpeed = speed;
+            this.meanSpeed = (this.meanSpeed + speed) / 2;
             textSpeed.setText(speed + "km/h");
         };
 
@@ -188,8 +191,8 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         this.map.setTileSource(TileSourceFactory.MAPNIK);
         this.map.setMultiTouchControls(true);
 
-        Marker marker = getBasicMarker(DefinedOverlay.HERE.value, R.drawable.directed_location, initialPoint);
-        this.map.getOverlays().add(marker);
+        this.hereMarker = getBasicMarker(DefinedOverlay.HERE.value, R.drawable.directed_location, initialPoint);
+        this.map.getOverlays().add(this.hereMarker);
 
         this.mapController.setZoom(19.3);
         this.mapController.setCenter(initialPoint);
@@ -221,16 +224,6 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         return marker;
     }
 
-    private void removeMarker(String id) {
-        for (int i = 0; i < this.map.getOverlays().size(); i++) {
-            Overlay overlay = this.map.getOverlays().get(i);
-            if (overlay instanceof Marker && ((Marker) overlay).getId().equals(id)) {
-                this.map.getOverlays().remove(overlay);
-                break;
-            }
-        }
-    }
-
     private void setupSensors() {
         this.sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -248,7 +241,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     private void stopDriving() {
         try {
             RidingDB dbhelper = new RidingDB(this, 1);
-            String encoded = new Gson().toJson(this.pointPassed);
+            String encoded = this.gson.toJson(this.pointPassed);
             dbhelper.insert(System.currentTimeMillis(), (int) this.lengthPassed,
                     this.meanSpeed,this.meanCadence, encoded, this.maxSpeed, this.maxCadence);
         } catch (Exception ignored) {
