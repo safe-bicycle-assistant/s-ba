@@ -4,17 +4,21 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Paint;
+import android.graphics.Point;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.LocationListener;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -23,6 +27,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.gson.Gson;
 import com.safe_bicycle_assistant.s_ba.ActivityAIDL;
 import com.safe_bicycle_assistant.s_ba.ConnectionServiceAIDL;
 import com.safe_bicycle_assistant.s_ba.R;
@@ -30,6 +35,7 @@ import com.safe_bicycle_assistant.s_ba.Services.ConnectionService;
 import com.safe_bicycle_assistant.s_ba.db_helpers.RidingDB;
 import com.safe_bicycle_assistant.s_ba.managers.MapManager;
 
+import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.bonuspack.routing.Road;
 import org.osmdroid.bonuspack.routing.RoadManager;
@@ -37,8 +43,8 @@ import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.Projection;
 import org.osmdroid.views.overlay.Marker;
-import org.osmdroid.views.overlay.Overlay;
 import org.osmdroid.views.overlay.Polyline;
 
 import java.util.ArrayList;
@@ -50,23 +56,20 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     private MapManager mapManager;
     private IMapController mapController;
     private SensorManager sensorManager;
+    private final Gson gson = new Gson();
 
     private boolean hasAccSensor = false;
     private boolean hasMagSensor = false;
     private final float[] accelerometers = new float[3];
     private final float[] magnetics = new float[3];
 
-    private Thread stopwatch;
-    private int timeSpent = 0;
     private float lengthPassed = 0;
-    private float curSpeed = 0;
-    private float curCadence = 0;
-    private float accSpeed = 0;
-    private float accCadence = 0;
+    private float meanSpeed = 0;
+    private float meanCadence = 0;
     private float maxSpeed = 0;
     private float maxCadence = 0;
 
-    private List<GeoPoint> pointPassed = new ArrayList<>();
+    private final List<String> pointPassed = new ArrayList<>();
 
     TextView textCadence = null;
     ImageView imageWarning = null;
@@ -82,14 +85,14 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
             runOnUiThread(() -> {
                 final int DETECTION_THRESHOLD = 50000;
 
-                if (detection >= DETECTION_THRESHOLD && imageWarning.getVisibility() == View.INVISIBLE) {
+                if (detection >= DETECTION_THRESHOLD) {
                     imageWarning.setVisibility(View.VISIBLE);
-                } else if (imageWarning.getVisibility() == View.VISIBLE) {
+                } else {
                     imageWarning.setVisibility(View.INVISIBLE);
                 }
 
                 if (cadence > maxCadence) maxCadence = cadence;
-                curCadence = cadence;
+                meanCadence = (meanCadence + cadence) / 2;
                 textCadence.setText(String.format("%.1f", cadence) + "RPM");
             });
         }
@@ -127,6 +130,8 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         }
     }
 
+    private Marker hereMarker = null;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -152,18 +157,15 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
             GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
             double distance = geoPoint.distanceToAsDouble(this.mapManager.current.get());
             this.lengthPassed += distance;
-            if (distance > 2) this.pointPassed.add(geoPoint);
+            if (distance > 1) this.pointPassed.add(this.gson.toJson(geoPoint));
 
             this.mapManager.current.set(geoPoint);
-            this.mapController.setCenter(mapManager.current.get());
+            animateMarker(this.hereMarker, this.mapManager.current.get());
+            this.mapController.animateTo(this.mapManager.current.get());
 
-            Marker marker = getBasicMarker(DefinedOverlay.HERE.value, R.drawable.directed_location, this.mapManager.current.get());
-            removeMarker(DefinedOverlay.HERE.value);
-            this.map.getOverlays().add(marker);
-
-            int speed = (int) location.getSpeed();
-            if (speed > maxSpeed) maxSpeed = speed;
-            curSpeed = speed;
+            int speed = (int) (location.getSpeed() * 3.6);
+            if (speed > this.maxSpeed) this.maxSpeed = speed;
+            this.meanSpeed = (this.meanSpeed + speed) / 2;
             textSpeed.setText(speed + "km/h");
         };
 
@@ -177,16 +179,13 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
         initialize(this.mapManager.current.get());
-
-        this.stopwatch = new Thread(this::onEverySecond);
-        this.stopwatch.start();
     }
     private void initialize(GeoPoint initialPoint) {
         this.map.setTileSource(TileSourceFactory.MAPNIK);
         this.map.setMultiTouchControls(true);
 
-        Marker marker = getBasicMarker(DefinedOverlay.HERE.value, R.drawable.directed_location, initialPoint);
-        this.map.getOverlays().add(marker);
+        this.hereMarker = getBasicMarker(DefinedOverlay.HERE.value, R.drawable.directed_location, initialPoint);
+        this.map.getOverlays().add(this.hereMarker);
 
         this.mapController.setZoom(19.3);
         this.mapController.setCenter(initialPoint);
@@ -204,6 +203,8 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         Polyline routeOverlay = RoadManager.buildRoadOverlay(road);
         routeOverlay.setId(DefinedOverlay.ROUTE.value);
         routeOverlay.getOutlinePaint().setStrokeWidth(20.0f);
+        routeOverlay.getOutlinePaint().setARGB(255, 0, 139, 236);
+        routeOverlay.getOutlinePaint().setStrokeCap(Paint.Cap.ROUND);
         this.map.getOverlays().add(routeOverlay);
     }
 
@@ -214,16 +215,6 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         marker.setPosition(point);
         marker.setId(id);
         return marker;
-    }
-
-    private void removeMarker(String id) {
-        for (int i = 0; i < this.map.getOverlays().size(); i++) {
-            Overlay overlay = this.map.getOverlays().get(i);
-            if (overlay instanceof Marker && ((Marker) overlay).getId().equals(id)) {
-                this.map.getOverlays().remove(overlay);
-                break;
-            }
-        }
     }
 
     private void setupSensors() {
@@ -241,33 +232,22 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     }
 
     private void stopDriving() {
-        if (this.stopwatch != null) {
-            this.stopwatch.interrupt();
-            this.stopwatch = null;
-        }
-
-        float meanSpeed = this.accSpeed / timeSpent;
-        float meanCadence = (this.accCadence / timeSpent) * 60;
-
-        if (this.lengthPassed >= 10) {
-            try {
-                RidingDB dbhelper = new RidingDB(this, 1);
-                SQLiteDatabase db = dbhelper.getWritableDatabase();
-                dbhelper.onCreate(db);
-                dbhelper.insert(System.currentTimeMillis(), (int) this.lengthPassed, meanSpeed, meanCadence);
-            } catch (Exception ignored) {
-                // Do nothing
-            }
+        try {
+            RidingDB dbhelper = new RidingDB(this, 1);
+            String encoded = this.gson.toJson(this.pointPassed);
+            dbhelper.insert(System.currentTimeMillis(), (int) this.lengthPassed,
+                    this.meanSpeed,this.meanCadence, encoded, this.maxSpeed, this.maxCadence);
+        } catch (Exception ignored) {
+            // Do nothing
         }
 
         new MaterialAlertDialogBuilder(this)
                 .setTitle("라이딩 끝!")
                 .setMessage(
-                        "주행 시간: " + secToText(timeSpent) + "\n" +
                         "주행 거리: " + String.format("%.1f", this.lengthPassed) + "m\n" +
-                        "평균 속력: " + String.format("%.1f", meanSpeed) + "km/h\n" +
+                        "평균 속력: " + String.format("%.1f", this.meanSpeed) + "km/h\n" +
                         "최고 속력: " + String.format("%.1f", this.maxSpeed) + "km/h\n" +
-                        "평균 케이던스: " + String.format("%.1f", meanCadence) + "RPM\n" +
+                        "평균 케이던스: " + String.format("%.1f", this.meanCadence) + "RPM\n" +
                         "최고 케이던스: " + String.format("%.1f", this.maxCadence) + "RPM\n"
                 )
                 .setPositiveButton("확인", (d, w) -> this.finish())
@@ -288,17 +268,26 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         return sec + "초";
     }
 
-    private void onEverySecond() {
-        try {
-            while (true) {
-                this.timeSpent += 1;
-                this.accSpeed += curSpeed;
-                this.accCadence += curCadence;
-                Thread.sleep(1000);
+    private void animateMarker(final Marker marker, final GeoPoint toPosition) {
+        Handler handler = new Handler();
+        long start = SystemClock.uptimeMillis();
+        Projection proj = map.getProjection();
+        Point startPoint = proj.toPixels(marker.getPosition(), null);
+        IGeoPoint startGeoPoint = proj.fromPixels(startPoint.x, startPoint.y);
+        long duration = 500;
+        LinearInterpolator interpolator = new LinearInterpolator();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                long elapsed = SystemClock.uptimeMillis() - start;
+                float t = interpolator.getInterpolation((float) elapsed / duration);
+                double lng = t * toPosition.getLongitude() + (1 - t) * startGeoPoint.getLongitude();
+                double lat = t * toPosition.getLatitude() + (1 - t) * startGeoPoint.getLatitude();
+                marker.setPosition(new GeoPoint(lat, lng));
+                if (t < 1.0) handler.postDelayed(this, 15);
+                map.postInvalidate();
             }
-        } catch (Exception ignored) {
-            // Do nothing
-        }
+        });
     }
 
     @Override

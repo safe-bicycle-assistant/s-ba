@@ -123,8 +123,8 @@ public class RidingLogFragment extends Fragment {
         ridingDatabaseHelper = new RidingDB(getContext(),1);
         Ridingdb = ridingDatabaseHelper.getWritableDatabase();
         ridingDatabaseHelper.onCreate(Ridingdb);
-        for(int i = 0; i< 10; i++)
-            ridingDatabaseHelper.insert(System.currentTimeMillis(),i+1,30.34,90.04,"HI",34.03,100.4);
+//        for(int i = 0; i< 10; i++)
+//            ridingDatabaseHelper.insert(System.currentTimeMillis(),i+1,30.34,90.04,"HI",34.03,100.4);
 
         Cursor ridingCursor =ridingDatabaseHelper.getAllDataToCursor();
         listView.setAdapter(new RidingLogAdapter(getContext(), ridingCursor, true));
