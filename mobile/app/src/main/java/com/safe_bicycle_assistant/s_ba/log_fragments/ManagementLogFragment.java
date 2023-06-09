@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -17,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 
 import com.safe_bicycle_assistant.s_ba.R;
@@ -40,8 +42,8 @@ public class ManagementLogFragment extends Fragment {
         managementDatabaseHelper = new ManagementDB(getContext(),1);
         db = managementDatabaseHelper.getWritableDatabase();
         managementDatabaseHelper.onCreate(db);
-        for(int i = 0; i< 10; i++)
-            managementDatabaseHelper.insert(System.currentTimeMillis(),ManagementDB.BRAKES | ManagementDB.TYRES);
+//        for(int i = 0; i< 10; i++)
+//            managementDatabaseHelper.insert(System.currentTimeMillis(),ManagementDB.BRAKES | ManagementDB.TYRES);
         listView.setAdapter(new ManagementLogAdapter(getContext(),managementDatabaseHelper.getAllDataToCursor(),true));
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -53,6 +55,18 @@ public class ManagementLogFragment extends Fragment {
                 ft.replace(R.id.fragment_container,managementLogDetailsFragment);
                 ft.addToBackStack(null);
                 ft.commit();
+            }
+        });
+        Button addButton = getView().findViewById(R.id.buttonAdd);
+        addButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DialogFragment  Fragment = new ManagementLogAddFragment();
+                FragmentManager manager = getActivity().getSupportFragmentManager();
+                FragmentTransaction ft = manager.beginTransaction();
+                ft.replace(R.id.fragment_container,Fragment);
+                ft.commit();
+
             }
         });
 //        listView.setAdapter(new ArrayAdapter<String>(getContext(),android.R.layout.simple_list_item_1,managementDatabaseHelper.getAllData()));
