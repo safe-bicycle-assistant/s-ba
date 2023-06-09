@@ -39,14 +39,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Button bt2 = findViewById(R.id.button2);
-        bt2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getApplicationContext(),TestActivity.class);
-                startActivity(intent);
-            }
-        });
         Button bt3= findViewById(R.id.button_map);
         bt3.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -6,24 +6,27 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".activities.MainActivity">
+    tools:context=".activities.MainActivity"
+    android:padding="25dp"
+    android:layout_gravity="center"
+    android:gravity="center">
 
 
     <Button
+        style="@style/Widget.Material3.Button.ElevatedButton.Icon"
         android:id="@+id/button_map"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="open Map"/>
-<!--        android:onClick="openMap" />-->
+        android:text="@string/map"
+        app:iconGravity="textStart"
+        app:icon="@drawable/location_icon" />
 
     <Button
+        style="@style/Widget.Material3.Button.ElevatedButton.Icon"
         android:id="@+id/button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="management" />
-    <Button
-        android:id="@+id/button2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="connection Test" />
+        android:text="@string/management"
+        app:iconGravity="textStart"
+        app:icon="@drawable/tool_icon" />
 </LinearLayout>
