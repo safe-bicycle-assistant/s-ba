@@ -62,6 +62,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     private boolean hasMagSensor = false;
     private final float[] accelerometers = new float[3];
     private final float[] magnetics = new float[3];
+    private float orientation = 0.0f;
 
     private float lengthPassed = 0;
     private float meanSpeed = 0;
@@ -314,7 +315,13 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
             float yaw = (float) Math.toDegrees(angles[0]);
             if (yaw < 0) yaw += 360;
 
-            this.mapController.animateTo(null, null, 200L, 360 - yaw);
+            final int ORIENTATION_THRESHOLD = 5;
+            float currentOrientation = this.orientation;
+            float newOrientation = 360 - yaw;
+            if (currentOrientation < 1 || Math.abs(currentOrientation - newOrientation) > ORIENTATION_THRESHOLD) {
+                this.mapController.animateTo(null, null, 200L, newOrientation);
+                this.orientation = newOrientation;
+            }
 
             hasAccSensor = false;
             hasMagSensor = false;
