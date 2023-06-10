@@ -234,6 +234,13 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     }
 
     private void stopDriving() {
+        if (this.lengthPassed < 1) {
+            this.meanSpeed = 0;
+            this.maxSpeed = 0;
+            this.meanCadence = 0;
+            this.maxCadence = 0;
+        }
+
         try {
             RidingDB dbhelper = new RidingDB(this, 1);
             String encoded = this.gson.toJson(this.pointPassed);
