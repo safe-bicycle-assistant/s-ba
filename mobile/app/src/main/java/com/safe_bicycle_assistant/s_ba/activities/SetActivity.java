@@ -112,7 +112,7 @@ public class SetActivity extends AppCompatActivity {
                 String bikeName = editText.getText().toString().trim();
                 Log.d(TAG, "onClick: 11");
                 if (bikeName.trim().isEmpty()) {
-                    Toast.makeText(SetActivity.this, "닉네임을 입력하세요", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SetActivity.this, "등록할 자전거를 입력하세요", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "onClick: 12");
                 }
                 else {
