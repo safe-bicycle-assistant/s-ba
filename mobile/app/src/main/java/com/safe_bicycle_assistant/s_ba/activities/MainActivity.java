@@ -1,10 +1,19 @@
 package com.safe_bicycle_assistant.s_ba.activities;
 
+import static java.security.AccessController.getContext;
+
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -12,27 +21,33 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GestureDetectorCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.safe_bicycle_assistant.s_ba.R;
+import com.safe_bicycle_assistant.s_ba.db_helpers.BicycleDB;
+import com.safe_bicycle_assistant.s_ba.db_helpers.RidingDB;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener{
     static final String TAG = "//*MainActivity*//";// MainActivity 호출을 위한 요청 코드
     private static final int REQUEST_CODE_SET_NICKNAME = 1;
     private static final int MAX_BIKES = 5;
     private static int NUM_PAGES = 0;
     private Button mapButton, manageButton, setButton, btnToggle;
-    private ImageView bikeImage;
-    private TextView bikeName;
     private ViewPager2 viewPager2;
     private FragmentStateAdapter pagerAdapter;
     private ArrayList<TextView> textViews = new ArrayList<>();
     private ArrayList<String> nicknames = new ArrayList<>();
+    private GestureDetector gestureDetector;
+    private ViewPager2.OnPageChangeCallback onPageChangeCallback;
+    private static final String DEBUG_TAG = "Gestures";
+    private GestureDetectorCompat mDetector;
+    private BicycleDB bicycleDB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +58,11 @@ public class MainActivity extends AppCompatActivity {
         manageButton = findViewById(R.id.manageButton);
         setButton = findViewById(R.id.setButton);
         viewPager2 = findViewById(R.id.pager);
+        bicycleDB = new BicycleDB(getApplicationContext(),1);
+        Cursor cursor = bicycleDB.getAllDateToCursor();
+        while(cursor.moveToNext())
+            nicknames.add(cursor.getString(BicycleDB.NICKNAME));
+        updateContentView();
 
         mapButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -80,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
                 {
                     position=-1;
                 }
-                Log.d(TAG, "////////onClick: "+position);
+                Log.d(TAG, "////////onClick: "+nicknames.size());
                 if (nicknames.size() >= MAX_BIKES) {
                     return;
                 }
@@ -88,17 +108,84 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(intent, SetActivity.REQUEST_CODE);
             }
         });
-
-        viewPager2.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Log.d(TAG, "onLongClick: ");
-                int position = viewPager2.getCurrentItem();
-                showDeleteDialog(position);
-                return true;
-            }
-        });
     }
+
+    //////////?@@@////////////
+    private Fragment getFragmentAtPosition(int position) {
+        FragmentStateAdapter adapter = (FragmentStateAdapter) viewPager2.getAdapter();
+        if (adapter != null) {
+            String tag = "f" + viewPager2.getId() + ":a" + adapter.getItemId(position);
+            return getSupportFragmentManager().findFragmentByTag(tag);
+        }
+        return null;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event){
+        if (this.mDetector.onTouchEvent(event)) {
+            return true;
+        }
+        return super.onTouchEvent(event);
+    }
+
+    @Override
+    public boolean onDown(MotionEvent event) {
+        Log.d(DEBUG_TAG,"onDown: " + event.toString());
+        return true;
+    }
+
+    @Override
+    public boolean onFling(MotionEvent event1, MotionEvent event2,
+                           float velocityX, float velocityY) {
+        Log.d(DEBUG_TAG, "onFling: " + event1.toString() + event2.toString());
+        return true;
+    }
+
+    @Override
+    public void onLongPress(MotionEvent event) {
+        Log.d(DEBUG_TAG, "onLongPress: " + event.toString());
+        int position = viewPager2.getCurrentItem();
+        showDeleteDialog(position);
+    }
+
+    @Override
+    public boolean onScroll(MotionEvent event1, MotionEvent event2, float distanceX,
+                            float distanceY) {
+        Log.d(DEBUG_TAG, "onScroll: " + event1.toString() + event2.toString());
+        return true;
+    }
+
+    @Override
+    public void onShowPress(MotionEvent event) {
+        Log.d(DEBUG_TAG, "onShowPress: " + event.toString());
+    }
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent event) {
+        Log.d(DEBUG_TAG, "onSingleTapUp: " + event.toString());
+        return true;
+    }
+
+    @Override
+    public boolean onDoubleTap(MotionEvent event) {
+        Log.d(DEBUG_TAG, "onDoubleTap: " + event.toString());
+        return true;
+    }
+
+    @Override
+    public boolean onDoubleTapEvent(MotionEvent event) {
+        Log.d(DEBUG_TAG, "onDoubleTapEvent: " + event.toString());
+        return true;
+    }
+
+    @Override
+    public boolean onSingleTapConfirmed(MotionEvent event) {
+        Log.d(DEBUG_TAG, "onSingleTapConfirmed: " + event.toString());
+        return true;
+    }
+
+
+    //////////?@@@////////////
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -109,10 +196,11 @@ public class MainActivity extends AppCompatActivity {
             if (nickname != null) {
                 nicknames.add(nickname);
 
-                if (textViews.size() <= 5) { //자전거 최대 5개까지 등록 가능
+                bicycleDB.insert(nickname);
+
+                if (nicknames.size() <= 5) { //자전거 최대 5개까지 등록 가능
                     TextView textView = new TextView(this);
                     textView.setText(nickname);
-                    textViews.add(textView);
                     updateContentView();
                 }
             }
@@ -157,11 +245,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateContentView() {
-        if(textViews.size() != 0)
+        if(nicknames.size() != 0)
         {
-            viewPager2.setAdapter(new BikePagerAdapter(nicknames));
+//            viewPager2.setAdapter(new BikePagerAdapter(nicknames));
 
-            switch (textViews.size()){
+            switch (nicknames.size()){
                 case 1: // 1대 등록
                     NUM_PAGES = 1;
 //                    Log.d(TAG, "**/updateContentView: "+nicknames);
@@ -195,7 +283,8 @@ public class MainActivity extends AppCompatActivity {
         setButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(textViews.size()<5){
+                Log.d(TAG, "onClick: bottom "+nicknames.size());
+                if(nicknames.size()<5){
                     Intent intent = new Intent(MainActivity.this, SetActivity.class);
                     startActivityForResult(intent, REQUEST_CODE_SET_NICKNAME);
                 }
@@ -222,32 +311,90 @@ public class MainActivity extends AppCompatActivity {
         });
 
         viewPager2 = findViewById(R.id.pager);
-        viewPager2.setOnLongClickListener(new View.OnLongClickListener() {
+        mDetector = new GestureDetectorCompat(this, new GestureDetector.SimpleOnGestureListener() {
             @Override
-            public boolean onLongClick(View v) {
-                Log.d(TAG, "onLongClick: ");
+            public void onLongPress(MotionEvent e) {
+                onLongPress(e);
                 int position = viewPager2.getCurrentItem();
-                showDeleteDialog(position);
-                return true;
+                Fragment fragment = getFragmentAtPosition(position);
+                Log.d(TAG, "onLongPress: 현재 포지션 "+position);
+//                if (fragment instanceof ScreenSlidePageFragment) {
+//                    ((ScreenSlidePageFragment) fragment).handleViewPagerLongClick();
+//                }
             }
         });
+
+        viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                Fragment fragment = getFragmentAtPosition(position);
+                Log.d(TAG, "onPageSelected: 현재 포지션 "+position);
+//                if (fragment instanceof ScreenSlidePageFragment) {
+//                    ((ScreenSlidePageFragment) fragment).handleViewPagerClick();
+//                }
+            }
+        });
+
+
+
     }
 
-    private void showDeleteDialog(final int position) {
+
+    public void showDeleteDialog(final int position) {
+        Log.d(TAG, "showDeleteDialog: ");
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Delete Bike")
-                .setMessage("Are you sure you want to delete this bike?")
-                .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        textViews.remove(position);
-                        Log.d(TAG, "onClick: " + textViews.size());
-                        nicknames.remove(position);
-                        updateContentView();
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .create()
-                .show();
+        builder.setTitle("Delete Bike");
+        builder.setMessage("Are you sure you want to delete this bike?");
+        builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+//                textViews.remove(position);
+                Log.d(TAG, "onClick: of builder Delete" + nicknames.size());
+                bicycleDB.delete(nicknames.get(position));
+                nicknames.remove(position);
+
+                updateContentView();
+            }
+        });
+        builder.setNegativeButton("Cancel", null);
+        builder.create();
+        builder.show();
+    }
+    private View findViewAt(ViewGroup viewGroup, float x, float y) {
+        for(int i = 0; i < viewGroup.getChildCount(); i++) {
+            View child = viewGroup.getChildAt(i);
+            if (child instanceof ViewGroup) {
+                View foundView = findViewAt((ViewGroup) child, x, y);
+                if (foundView != null && foundView.isShown()) {
+                    return foundView;
+                }
+            } else {
+                int[] location = new int[2];
+                child.getLocationOnScreen(location);
+                Rect rect = new Rect(location[0], location[1], location[0] + child.getWidth(), location[1] + child.getHeight());
+                if (rect.contains((int)x, (int)y)) {
+                    return child;
+                }
+            }
+        }
+
+        return null;
+    }
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        View view = findViewAt((ViewGroup) getWindow().getDecorView().getRootView(),ev.getX(),ev.getY());
+
+        if(view != null && (view.getId() == R.id.bikeName || view.getId() == R.id.bikeImage))
+        {
+
+            if(ev.getPointerCount() == 2 && ev.getAction() == 261)
+            {
+
+                showDeleteDialog(viewPager2.getCurrentItem());
+            }
+        }
+        return super.dispatchTouchEvent(ev);
+
     }
 }
