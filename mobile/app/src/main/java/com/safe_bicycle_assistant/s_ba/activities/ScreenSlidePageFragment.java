@@ -32,9 +32,6 @@ public class ScreenSlidePageFragment extends Fragment {
         ImageView imageView = view.findViewById(R.id.bikeImage); // ImageView 가져오기
         textView.setText(nickname);
 
-        Log.d(TAG, "**/onCreateView: "+view.findViewById(R.id.bikeImage).toString());
-        Log.d(TAG, "**/onCreateView: "+view.findViewById(R.id.bikeImage));
-
         // 각 슬라이드에 맞는 ImageView의 색상 설정
         int color = getColorForPosition(position); // 슬라이드 위치에 따른 색상 결정
         imageView.setColorFilter(color); // ImageView 색상 변경

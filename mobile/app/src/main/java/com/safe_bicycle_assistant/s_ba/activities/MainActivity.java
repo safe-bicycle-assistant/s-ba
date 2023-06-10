@@ -33,14 +33,11 @@ public class MainActivity extends AppCompatActivity {
     private FragmentStateAdapter pagerAdapter;
     private ArrayList<TextView> textViews = new ArrayList<>();
     private ArrayList<String> nicknames = new ArrayList<>();
-//    private BikePagerAdapter bikePagerAdapter;
-//    private ArrayList<Bike> bikes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.d(TAG, "onCreate: 1");
 
         mapButton = findViewById(R.id.mapButton);
         manageButton = findViewById(R.id.manageButton);
@@ -50,6 +47,12 @@ public class MainActivity extends AppCompatActivity {
         mapButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                int position = viewPager2.getCurrentItem();
+                if(nicknames.size()==0)
+                {
+                    position=-1;
+                }
+                Log.d(TAG, "////////onClick: "+position);
                 Intent intent = new Intent(MainActivity.this, MapActivity.class);
                 startActivity(intent);
             }
@@ -58,6 +61,12 @@ public class MainActivity extends AppCompatActivity {
         manageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                int position = viewPager2.getCurrentItem();
+                if(nicknames.size()==0)
+                {
+                    position=-1;
+                }
+                Log.d(TAG, "////////onClick: "+position);
                 Intent intent = new Intent(MainActivity.this, ManagementActivity.class);
                 startActivity(intent);
             }
@@ -66,14 +75,17 @@ public class MainActivity extends AppCompatActivity {
         setButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                int position = viewPager2.getCurrentItem();
+                if(nicknames.size()==0)
+                {
+                    position=-1;
+                }
+                Log.d(TAG, "////////onClick: "+position);
                 if (nicknames.size() >= MAX_BIKES) {
-                    // Maximum number of bikes reached
-                    // Show a message or handle the error
                     return;
                 }
                 Intent intent = new Intent(MainActivity.this, SetActivity.class);
                 startActivityForResult(intent, SetActivity.REQUEST_CODE);
-                Log.d(TAG, "onClick: 2");
             }
         });
 
@@ -86,7 +98,6 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
-
     }
 
     @Override
@@ -105,8 +116,6 @@ public class MainActivity extends AppCompatActivity {
                     updateContentView();
                 }
             }
-            Log.d(TAG, "onActivityResult: 3 " +nicknames);
-
         }
     }
 
@@ -145,62 +154,33 @@ public class MainActivity extends AppCompatActivity {
         public long getItemId(int position) {
             return position; // 각 슬라이드의 고유 ID로서 position을 반환
         }
-
-//        @Override
-//        public boolean containsItem(long itemId) {
-//            // containsItem 메소드를 오버라이드하여 getItemId에서 반환한 ID를 포함하는지 여부를 반환
-//            return nicknames.contains(String.valueOf(itemId));
-//        }
     }
 
     private void updateContentView() {
         if(textViews.size() != 0)
         {
             viewPager2.setAdapter(new BikePagerAdapter(nicknames));
-            Fragment fragment;
-            Bundle bundle;
-
 
             switch (textViews.size()){
                 case 1: // 1대 등록
                     NUM_PAGES = 1;
-//                    fragment = pagerAdapter.createFragment(1);
-//                    bundle = new Bundle();
-//                    bundle.putInt("position", 1);
-//                    fragment.setArguments(bundle);
-                    Log.d(TAG, "**/updateContentView: "+nicknames);
+//                    Log.d(TAG, "**/updateContentView: "+nicknames);
                     break;
                 case 2:
                     NUM_PAGES = 2;
-//                    fragment = pagerAdapter.createFragment(2);
-//                    bundle = new Bundle();
-//                    bundle.putInt("position", 2);
-//                    fragment.setArguments(bundle);
-                    Log.d(TAG, "**/updateContentView: "+nicknames);
+//                    Log.d(TAG, "**/updateContentView: "+nicknames);
                     break;
                 case 3:
                     NUM_PAGES = 3;
-//                    fragment = pagerAdapter.createFragment(3);
-//                    bundle = new Bundle();
-//                    bundle.putInt("position", 3);
-//                    fragment.setArguments(bundle);
-                    Log.d(TAG, "updateContentView: "+nicknames);
+//                    Log.d(TAG, "updateContentView: "+nicknames);
                     break;
                 case 4:
                     NUM_PAGES = 4;
-//                    fragment = pagerAdapter.createFragment(4);
-//                    bundle = new Bundle();
-//                    bundle.putInt("position", 4);
-//                    fragment.setArguments(bundle);
-                    Log.d(TAG, "updateContentView: "+nicknames);
+//                    Log.d(TAG, "updateContentView: "+nicknames);
                     break;
                 case 5:
                     NUM_PAGES = 5;
-//                    fragment = pagerAdapter.createFragment(5);
-//                    bundle = new Bundle();
-//                    bundle.putInt("position", 5);
-//                    fragment.setArguments(bundle);
-                    Log.d(TAG, "updateContentView: "+nicknames);
+//                    Log.d(TAG, "updateContentView: "+nicknames);
                     break;
             }
         }
@@ -261,10 +241,9 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         textViews.remove(position);
-                        Log.d(TAG, "AAAAAonClick: " + textViews.size());
+                        Log.d(TAG, "onClick: " + textViews.size());
                         nicknames.remove(position);
                         updateContentView();
-//                        bikePagerAdapter.notifyDataSetChanged();
                     }
                 })
                 .setNegativeButton("Cancel", null)

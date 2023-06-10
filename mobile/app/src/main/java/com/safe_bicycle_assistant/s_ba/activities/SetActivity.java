@@ -26,8 +26,6 @@ public class SetActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_set);
 
-        Log.d(TAG, "onCreate: 10");
-
         editText = findViewById(R.id.editText);
         saveButton = findViewById(R.id.RegButton);
 
@@ -35,22 +33,18 @@ public class SetActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String bikeName = editText.getText().toString().trim();
-                Log.d(TAG, "onClick: 11");
                 if (bikeName.trim().isEmpty()) {
                     Toast.makeText(SetActivity.this, "등록할 자전거를 입력하세요", Toast.LENGTH_SHORT).show();
-                    Log.d(TAG, "onClick: 12");
                 }
                 else {
                     Intent intent = new Intent();
                     intent.putExtra("bikename", bikeName);
                     setResult(RESULT_OK, intent);
-                    Log.d(TAG, "onClick: 13");
 
                     finish();
                 }
             }
         });
-        Log.d(TAG, "onCreate: 15");
     }
 }
 
