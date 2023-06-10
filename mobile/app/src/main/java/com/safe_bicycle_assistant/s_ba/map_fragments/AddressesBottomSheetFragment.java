@@ -1,9 +1,11 @@
 package com.safe_bicycle_assistant.s_ba.map_fragments;
 
+import android.annotation.SuppressLint;
 import android.location.Address;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -23,10 +25,28 @@ public class AddressesBottomSheetFragment extends BottomSheetDialogFragment {
     private AddressFor addressFor = AddressFor.UNKNOWN;
 
     @Override
+    @SuppressLint("ClickableViewAccessibility")
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup viewGroup, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_addresses_bottom_sheet, viewGroup, false);
 
         ListView listView = view.findViewById(R.id.listViewSearchResult);
+        listView.setOnTouchListener((v, event) -> {
+            int action = event.getAction();
+
+            switch (action) {
+                case MotionEvent.ACTION_DOWN:
+                    v.getParent().requestDisallowInterceptTouchEvent(true);
+                    break;
+
+                case MotionEvent.ACTION_UP:
+                    v.getParent().requestDisallowInterceptTouchEvent(false);
+                    break;
+            }
+
+            v.onTouchEvent(event);
+            return true;
+        });
+
         listView.setOnItemClickListener((adapterView, listItemView, position, id) ->
                 this.mListener.onAddressSelected((Address) adapterView.getAdapter().getItem(position), this.addressFor));
 

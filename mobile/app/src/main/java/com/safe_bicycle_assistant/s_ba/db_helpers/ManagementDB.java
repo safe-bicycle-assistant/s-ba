@@ -15,6 +15,8 @@ public class ManagementDB extends SQLiteOpenHelper {
     public static final int TYRES = 2;
     public static final int WHEELS = 4;
     public static final int ALL = 7;
+    public static final int TIME = 0;
+    public static final int CHANGE = 1;
     static final String DATABASE_NAME = "s-ba";
     public static final String TABLE_NAME = "ManagementLog";
     static final String TABLE_FORMAT = "(time BIGINT, change INT)";
@@ -39,12 +41,33 @@ public class ManagementDB extends SQLiteOpenHelper {
 
     }
 
-    public Cursor getAllDateToCursor() {
-        String query = "select *,1 _id from "+ TABLE_NAME;
+    public Cursor getAllDataToCursor() {
+        String query = "select *,1 _id from "+ TABLE_NAME +" order by time desc";
         SQLiteDatabase db = getWritableDatabase();
         Cursor c = db.rawQuery(query,null);
         return c;
     }
+
+    public Cursor getDataByIndex(int i) {
+//        String query = "select * from "+TABLE_NAME+" limit 1 offset "+i;
+//        SQLiteDatabase db = getWritableDatabase();
+//        Cursor c = db.rawQuery(query,null);
+//        return c;
+
+        String query = "select *,1 _id from "+ TABLE_NAME+" order by time desc";
+        SQLiteDatabase db = getWritableDatabase();
+        Cursor c = db.rawQuery(query,null);
+        c.moveToFirst();
+        while(i > 0 )
+        {
+            if(c.moveToNext())
+                i--;
+            else
+                return null;
+        }
+        return c;
+    }
+
     public List<String> getAllData()
     {
         String query = "select * from "+ TABLE_NAME;

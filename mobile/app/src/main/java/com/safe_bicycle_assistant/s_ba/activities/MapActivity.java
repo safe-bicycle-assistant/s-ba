@@ -2,17 +2,21 @@ package com.safe_bicycle_assistant.s_ba.activities;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Paint;
 import android.location.Address;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
-import android.widget.Button;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.safe_bicycle_assistant.s_ba.managers.MapManager;
 import com.safe_bicycle_assistant.s_ba.map_fragments.AddressesBottomSheetFragment;
 import com.safe_bicycle_assistant.s_ba.R;
@@ -35,8 +39,11 @@ import org.osmdroid.views.overlay.Polyline;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
-public class MapActivity extends AppCompatActivity implements AddressesBottomSheetFragment.MapBottomSheetListener, RouteBottomSheetFragment.RouteBottomSheetListener {
+public class MapActivity extends AppCompatActivity implements
+        AddressesBottomSheetFragment.MapBottomSheetListener,
+        RouteBottomSheetFragment.RouteBottomSheetListener {
 
     private MapView map;
     private EditText editTextFrom;
@@ -91,42 +98,23 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
         this.editTextFrom.setOnKeyListener((v, keyCode, event) -> {
             if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_ENTER) {
                 showAddressesBottomSheet(AddressFor.FROM, this.editTextFrom);
+                return true;
             }
-            return true;
+            return false;
         });
 
         this.editTextTo = findViewById(R.id.editTextTo);
         this.editTextTo.setOnKeyListener((v, keyCode, event) -> {
             if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_ENTER) {
                 showAddressesBottomSheet(AddressFor.TO, this.editTextTo);
+                return true;
             }
-            return true;
+            return false;
         });
 
-        Button buttonCurrentLocation = findViewById(R.id.buttonCurrentLocation);
+        FloatingActionButton buttonCurrentLocation = findViewById(R.id.buttonCurrentLocation);
         buttonCurrentLocation.setOnClickListener((v) ->
                 moveToPoint(mapManager.fetchCurrentGeoPoint()));
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        this.map.onResume();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        this.map.onPause();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        PermissionUtil.requestPermissions(
-                Arrays.asList(permissions).subList(0, grantResults.length),
-                this
-        );
     }
 
     private void initialize(GeoPoint initialPoint) {
@@ -137,7 +125,7 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
         mapController.setZoom(17.0);
         mapController.setCenter(initialPoint);
 
-        Marker marker = getBasicMarker(DefinedOverlay.HERE.value, initialPoint);
+        Marker marker = getBasicMarker(DefinedOverlay.HERE.value, R.drawable.location, initialPoint);
         this.map.getOverlays().add(marker);
 
         this.map.invalidate();
@@ -150,14 +138,16 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
 
         this.map.getOverlays().addAll(
                 Arrays.asList(
-                        getBasicMarker(DefinedOverlay.FROM.value, mapManager.from),
-                        getBasicMarker(DefinedOverlay.TO.value, mapManager.to)
+                        getBasicMarker(DefinedOverlay.FROM.value, R.drawable.marker_green, mapManager.from),
+                        getBasicMarker(DefinedOverlay.TO.value, R.drawable.marker_red, mapManager.to)
                 )
         );
 
         Polyline routeOverlay = RoadManager.buildRoadOverlay(road);
         routeOverlay.setId(DefinedOverlay.ROUTE.value);
         routeOverlay.getOutlinePaint().setStrokeWidth(20.0f);
+        routeOverlay.getOutlinePaint().setARGB(255, 0, 139, 236);
+        routeOverlay.getOutlinePaint().setStrokeCap(Paint.Cap.ROUND);
         this.map.getOverlays().add(routeOverlay);
 
         this.map.zoomToBoundingBox(applyOffsets(road.mBoundingBox), true);
@@ -167,25 +157,29 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
 
     private void moveToPoint(GeoPoint point) {
         removeMarker(DefinedOverlay.HERE.value);
-        this.map.getOverlays().add(getBasicMarker(DefinedOverlay.HERE.value, point));
+        this.map.getOverlays().add(getBasicMarker(DefinedOverlay.HERE.value, R.drawable.location, point));
         this.map.getController().animateTo(point);
     }
 
     private void showAddressesBottomSheet(AddressFor addressFor, EditText view) {
-        List<Address> addresses = mapManager.searchAddressesBy(view.getText().toString(), mapManager.current.get());
-        this.addressesBottomSheetFragment = new AddressesBottomSheetFragment();
+        try {
+            ArrayList<Address> addresses = (ArrayList<Address>) mapManager.searchAddressesBy(
+                    view.getText().toString(), mapManager.current.get());
+            this.addressesBottomSheetFragment = new AddressesBottomSheetFragment();
 
-        Bundle args = new Bundle();
-        args.putInt("addressFor", addressFor.toValue());
-        args.putParcelableArrayList("addresses", (ArrayList<Address>) addresses);
-        this.addressesBottomSheetFragment.setArguments(args);
+            Bundle args = new Bundle();
+            args.putInt("addressFor", addressFor.toValue());
+            args.putParcelableArrayList("addresses", addresses);
+            this.addressesBottomSheetFragment.setArguments(args);
 
-        this.addressesBottomSheetFragment.show(getSupportFragmentManager(), "mapBottomSheet");
+            this.addressesBottomSheetFragment.show(getSupportFragmentManager(), "mapBottomSheet");
+        } catch (Exception ignored) {
+            // Do nothing
+        }
     }
 
     private void showRouteBottomSheet(Road road) {
         this.routeBottomSheetFragment = new RouteBottomSheetFragment();
-        this.routeBottomSheetFragment.setCancelable(false);
 
         Bundle args = new Bundle();
         args.putParcelable("road", road);
@@ -194,11 +188,15 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
         this.routeBottomSheetFragment.show(getSupportFragmentManager(), "routeBottomSheet");
     }
 
-    private Marker getBasicMarker(String id, GeoPoint point) {
+    private Marker getBasicMarker(String id, int icon, GeoPoint point) {
         Marker marker = new Marker(this.map);
         marker.setOnMarkerClickListener((m, v) -> false);
         marker.setPosition(point);
         marker.setId(id);
+        if (!Objects.equals(id, DefinedOverlay.HERE.value)) {
+            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        }
+        marker.setIcon(AppCompatResources.getDrawable(this, icon));
         return marker;
     }
 
@@ -223,10 +221,10 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
     }
 
     private BoundingBox applyOffsets(BoundingBox box) {
-        double northOffset = 0.04;
-        double eastOffset = 0.02;
+        double northOffset = 0.02;
+        double eastOffset = 0.01;
         double southOffset = 0.02;
-        double westOffset = 0.02;
+        double westOffset = 0.01;
 
         return new BoundingBox(
                 box.getActualNorth() + northOffset,
@@ -258,18 +256,40 @@ public class MapActivity extends AppCompatActivity implements AddressesBottomShe
                 this.editTextTo.setText(mapManager.searchAddressTextBy(mapManager.from));
             }
 
-            Road road = mapManager.searchRoute(mapManager.to, mapManager.from);
-            drawRoute(road);
-            showRouteBottomSheet(road);
+            this.mapManager.road = mapManager.searchRoute(mapManager.to, mapManager.from);
+            drawRoute(this.mapManager.road);
+            showRouteBottomSheet(this.mapManager.road);
         }
     }
 
     @Override
     public void onStartDriving() {
+        this.routeBottomSheetFragment.dismiss();
+        Intent navigationIntent = new Intent(this, NavigationActivity.class);
+        navigationIntent.putExtra("to", (Parcelable) this.mapManager.to);
+        navigationIntent.putExtra("from", (Parcelable) this.mapManager.from);
+        navigationIntent.putExtra("road", this.mapManager.road);
+        startActivity(navigationIntent);
     }
 
     @Override
-    public void onCancelRoute() {
-        this.routeBottomSheetFragment.dismiss();
+    public void onResume() {
+        super.onResume();
+        this.map.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        this.map.onPause();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        PermissionUtil.requestPermissions(
+                Arrays.asList(permissions).subList(0, grantResults.length),
+                this
+        );
     }
 }

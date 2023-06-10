@@ -93,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         });
 
         setButton.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
                 int position = viewPager2.getCurrentItem();

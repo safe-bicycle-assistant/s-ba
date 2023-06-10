@@ -57,6 +57,12 @@
 
             android:name=".activities.MapActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".activities.NavigationActivity"
+            android:exported="false" />
+
+
     </application>
 
 </manifest>

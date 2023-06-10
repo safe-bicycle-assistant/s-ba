@@ -17,7 +17,7 @@
     <LinearLayout
         android:id="@+id/linearLayout3"
         android:layout_width="381dp"
-        android:layout_height="179dp"
+        android:layout_height="260dp"
         android:layout_gravity="center"
         android:orientation="vertical">
 
@@ -28,7 +28,7 @@
             android:layout_weight="1"
             android:background="@drawable/button_pattern"
             android:text="MAP"
-            android:textSize="20dp"
+            android:textSize="15dp"
             android:textStyle="bold"/>
 
         <Space
@@ -43,7 +43,7 @@
             android:layout_weight="1"
             android:background="@drawable/button_pattern"
             android:text="MANAGEMENT"
-            android:textSize="20dp"
+            android:textSize="15dp"
             android:textStyle="bold"/>
 
         <Space
@@ -59,22 +59,22 @@
             android:background="@drawable/button_pattern"
             android:onClick="navigateToSetActivity"
             android:text="SETTING"
-            android:textSize="20dp"
+            android:textSize="15dp"
             android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/button_map"
+            style="@style/Widget.Material3.Button.ElevatedButton.Icon"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Select Bike"
+            android:textSize="25dp"
+            android:textStyle="bold" />
     </LinearLayout>
 
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="40dp" />
 
-    <TextView
-        android:id="@+id/selectText"
-        android:layout_gravity="center"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Select Bike"
-        android:textSize="25dp"
-        android:textStyle="bold"/>
+
 
     <Button
         android:id="@+id/btnToggle"
@@ -87,7 +87,7 @@
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/pager"
         android:layout_width="435dp"
-        android:layout_height="377dp"
+        android:layout_height="350dp"
         android:layout_gravity="center">
 
     </androidx.viewpager2.widget.ViewPager2>
