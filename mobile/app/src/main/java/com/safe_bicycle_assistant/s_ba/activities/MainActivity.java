@@ -133,39 +133,73 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public Fragment createFragment(int position) {
-            return new ScreenSlidePageFragment(nicknames.get(position));
+            return new ScreenSlidePageFragment(nicknames.get(position),position);
         }
 
         @Override
         public int getItemCount() {
             return NUM_PAGES;
         }
+
+        @Override
+        public long getItemId(int position) {
+            return position; // 각 슬라이드의 고유 ID로서 position을 반환
+        }
+
+//        @Override
+//        public boolean containsItem(long itemId) {
+//            // containsItem 메소드를 오버라이드하여 getItemId에서 반환한 ID를 포함하는지 여부를 반환
+//            return nicknames.contains(String.valueOf(itemId));
+//        }
     }
 
     private void updateContentView() {
         if(textViews.size() != 0)
         {
             viewPager2.setAdapter(new BikePagerAdapter(nicknames));
+            Fragment fragment;
+            Bundle bundle;
+
 
             switch (textViews.size()){
                 case 1: // 1대 등록
                     NUM_PAGES = 1;
-                    Log.d(TAG, "updateContentView: "+nicknames);
+//                    fragment = pagerAdapter.createFragment(1);
+//                    bundle = new Bundle();
+//                    bundle.putInt("position", 1);
+//                    fragment.setArguments(bundle);
+                    Log.d(TAG, "**/updateContentView: "+nicknames);
                     break;
                 case 2:
                     NUM_PAGES = 2;
-                    Log.d(TAG, "updateContentView: "+nicknames);
+//                    fragment = pagerAdapter.createFragment(2);
+//                    bundle = new Bundle();
+//                    bundle.putInt("position", 2);
+//                    fragment.setArguments(bundle);
+                    Log.d(TAG, "**/updateContentView: "+nicknames);
                     break;
                 case 3:
                     NUM_PAGES = 3;
+//                    fragment = pagerAdapter.createFragment(3);
+//                    bundle = new Bundle();
+//                    bundle.putInt("position", 3);
+//                    fragment.setArguments(bundle);
                     Log.d(TAG, "updateContentView: "+nicknames);
                     break;
                 case 4:
                     NUM_PAGES = 4;
+//                    fragment = pagerAdapter.createFragment(4);
+//                    bundle = new Bundle();
+//                    bundle.putInt("position", 4);
+//                    fragment.setArguments(bundle);
                     Log.d(TAG, "updateContentView: "+nicknames);
                     break;
                 case 5:
                     NUM_PAGES = 5;
+//                    fragment = pagerAdapter.createFragment(5);
+//                    bundle = new Bundle();
+//                    bundle.putInt("position", 5);
+//                    fragment.setArguments(bundle);
                     Log.d(TAG, "updateContentView: "+nicknames);
                     break;
             }
@@ -198,11 +232,11 @@ public class MainActivity extends AppCompatActivity {
                 if (viewPager2.getOrientation() == ViewPager2.ORIENTATION_VERTICAL) {
                     btnToggle.setText("가로로 슬라이드");
                     viewPager2.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
-                    Log.d(TAG, "onClick: 가로");
+//                    Log.d(TAG, "onClick: 가로");
                 }else {
                     btnToggle.setText("세로로 슬라이드");
                     viewPager2.setOrientation(ViewPager2.ORIENTATION_VERTICAL);
-                    Log.d(TAG, "onClick: 세로");
+//                    Log.d(TAG, "onClick: 세로");
                 }
             }
         });
