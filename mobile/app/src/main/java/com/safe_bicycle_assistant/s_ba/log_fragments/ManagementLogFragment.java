@@ -29,9 +29,12 @@ import com.safe_bicycle_assistant.s_ba.uis.ManagementLogAdapter;
 public class ManagementLogFragment extends Fragment {
 
     static ManagementDB managementDatabaseHelper;
+    String bicycleName;
     SQLiteDatabase db;
     ListView listView;
-
+    public ManagementLogFragment(String bicycleName) {
+        this.bicycleName = bicycleName;
+    }
 
 
     @Override
@@ -44,11 +47,11 @@ public class ManagementLogFragment extends Fragment {
         managementDatabaseHelper.onCreate(db);
 //        for(int i = 0; i< 10; i++)
 //            managementDatabaseHelper.insert(System.currentTimeMillis(),ManagementDB.BRAKES | ManagementDB.TYRES);
-        listView.setAdapter(new ManagementLogAdapter(getContext(),managementDatabaseHelper.getAllDataToCursor(),true));
+        listView.setAdapter(new ManagementLogAdapter(getContext(),managementDatabaseHelper.getAllDataToCursor(bicycleName),true));
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                ManagementLogDetailsFragment managementLogDetailsFragment = new ManagementLogDetailsFragment(i);
+                ManagementLogDetailsFragment managementLogDetailsFragment = new ManagementLogDetailsFragment(i,bicycleName);
 //                FrameLayout container = getView().findViewById(R.id.fragment_container);
                 FragmentManager manager = getActivity().getSupportFragmentManager();
                 FragmentTransaction ft = manager.beginTransaction();
@@ -61,7 +64,7 @@ public class ManagementLogFragment extends Fragment {
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                DialogFragment  Fragment = new ManagementLogAddFragment();
+                DialogFragment  Fragment = new ManagementLogAddFragment(bicycleName);
                 FragmentManager manager = getActivity().getSupportFragmentManager();
                 FragmentTransaction ft = manager.beginTransaction();
                 ft.replace(R.id.fragment_container,Fragment);

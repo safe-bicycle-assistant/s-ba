@@ -47,10 +47,12 @@ public class RidingLogDetailsFragment extends Fragment {
     TextView avgSpeedView;
     TextView maxCadenceView;
     TextView avgCadenceView;
+    String bicycleName;
     private final Gson gson = new Gson();
 
-    public RidingLogDetailsFragment(int index) {
+    public RidingLogDetailsFragment(int index,String bicycleName) {
         this.index = index;
+        this.bicycleName = bicycleName;
     }
     @Override
     public void onStart() {
@@ -63,7 +65,7 @@ public class RidingLogDetailsFragment extends Fragment {
         avgSpeedView = getView().findViewById(R.id.avgSpeedTextView);
         maxCadenceView = getView().findViewById(R.id.maxCadenceTextView);
         ridingDatabaseHelper = new RidingDB(getContext(),1);
-        Cursor c = ridingDatabaseHelper.getDataByIndex(index);
+        Cursor c = ridingDatabaseHelper.getDataByIndex(index,bicycleName);
 //        Cursor c = ridingDatabaseHelper.getAllDataToCursor();
 //        c.moveToFirst();
 //        for(int i = 0; i< index; i++)

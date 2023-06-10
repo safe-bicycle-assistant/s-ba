@@ -32,10 +32,12 @@ public class ManagementLogDetailsFragment extends Fragment {
     TextView timeView;
     TextView wheelsView;
     TextView brakesView;
+    String bicycleName;
 
 
-    public ManagementLogDetailsFragment(int index) {
+    public ManagementLogDetailsFragment(int index,String bicycleName) {
         this.index = index;
+        this.bicycleName = bicycleName;
     }
     @Override
     public void onStart() {
@@ -47,7 +49,7 @@ public class ManagementLogDetailsFragment extends Fragment {
         brakesView = getView().findViewById(R.id.brakesTextView);
 
         managementDatabaseHelper = new ManagementDB(getContext(),1);
-        Cursor c = managementDatabaseHelper.getDataByIndex(index);
+        Cursor c = managementDatabaseHelper.getDataByIndex(index,bicycleName);
 //        Cursor c = ridingDatabaseHelper.getAllDataToCursor();
 //        c.moveToFirst();
 //        for(int i = 0; i< index; i++)

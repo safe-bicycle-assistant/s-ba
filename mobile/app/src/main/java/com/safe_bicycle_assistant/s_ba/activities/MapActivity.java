@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.EditText;
 
@@ -48,6 +49,7 @@ public class MapActivity extends AppCompatActivity implements
     private MapView map;
     private EditText editTextFrom;
     private EditText editTextTo;
+    private String bicycleName;
 
     private AddressesBottomSheetFragment addressesBottomSheetFragment;
     private RouteBottomSheetFragment routeBottomSheetFragment;
@@ -70,6 +72,8 @@ public class MapActivity extends AppCompatActivity implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.bicycleName = getIntent().getStringExtra("name");
+        Log.d("Map", "onCreate: "+bicycleName);
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -269,6 +273,7 @@ public class MapActivity extends AppCompatActivity implements
         navigationIntent.putExtra("to", (Parcelable) this.mapManager.to);
         navigationIntent.putExtra("from", (Parcelable) this.mapManager.from);
         navigationIntent.putExtra("road", this.mapManager.road);
+        navigationIntent.putExtra("name",bicycleName);
         startActivity(navigationIntent);
     }
 

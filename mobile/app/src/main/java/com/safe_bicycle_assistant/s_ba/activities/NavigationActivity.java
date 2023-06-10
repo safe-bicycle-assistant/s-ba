@@ -17,6 +17,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 import android.widget.Button;
@@ -51,7 +52,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NavigationActivity extends AppCompatActivity implements SensorEventListener {
-
+    private final String TAG = "NavigationActivity";
     private MapView map;
     private MapManager mapManager;
     private IMapController mapController;
@@ -69,6 +70,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     private float meanCadence = 0;
     private float maxSpeed = 0;
     private float maxCadence = 0;
+    private String bicycleName;
 
     private final List<String> pointPassed = new ArrayList<>();
 
@@ -148,7 +150,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         this.mapManager.from = getIntent().getParcelableExtra("from");
         this.mapManager.to = getIntent().getParcelableExtra("to");
         this.mapManager.road = getIntent().getParcelableExtra("road");
-
+        this.bicycleName = getIntent().getStringExtra("name");
         this.mapController = this.map.getController();
 
         this.imageWarning = findViewById(R.id.imageWarning);
@@ -234,11 +236,14 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
 
     private void stopDriving() {
         try {
+            Log.d(TAG, "stopDriving: ");
             RidingDB dbhelper = new RidingDB(this, 1);
             String encoded = this.gson.toJson(this.pointPassed);
             dbhelper.insert(System.currentTimeMillis(), (int) this.lengthPassed,
-                    this.meanSpeed,this.meanCadence, encoded, this.maxSpeed, this.maxCadence);
+                    this.meanSpeed,this.meanCadence, encoded, this.maxSpeed, this.maxCadence,this.bicycleName);
         } catch (Exception ignored) {
+            ignored.printStackTrace();
+            Log.d(TAG, "stopDriving: Exception");
             // Do nothing
         }
 

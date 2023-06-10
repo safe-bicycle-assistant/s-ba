@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         mapButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d(TAG, "onClick: of mapButton up");
                 int position = viewPager2.getCurrentItem();
                 if(nicknames.size()==0)
                 {
@@ -74,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                 }
                 Log.d(TAG, "////////onClick: "+position);
                 Intent intent = new Intent(MainActivity.this, MapActivity.class);
+                intent.putExtra("name",nicknames.get(position));
                 startActivity(intent);
             }
         });
@@ -81,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         manageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d(TAG, "onClick: of manage button up");
                 int position = viewPager2.getCurrentItem();
                 if(nicknames.size()==0)
                 {
@@ -88,6 +91,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                 }
                 Log.d(TAG, "////////onClick: "+position);
                 Intent intent = new Intent(MainActivity.this, ManagementActivity.class);
+                intent.putExtra("name",nicknames.get(position));
                 startActivity(intent);
             }
         });
@@ -96,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
             @Override
             public void onClick(View v) {
+                Log.d(TAG, "onClick: of setButton up");
                 int position = viewPager2.getCurrentItem();
                 if(nicknames.size()==0)
                 {
@@ -284,7 +289,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         setButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(TAG, "onClick: bottom "+nicknames.size());
+                Log.d(TAG, "onClick: bottom of setButton bottom;"+nicknames.size());
                 if(nicknames.size()<5){
                     Intent intent = new Intent(MainActivity.this, SetActivity.class);
                     startActivityForResult(intent, REQUEST_CODE_SET_NICKNAME);
@@ -294,7 +299,40 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                 }
             }
         });
+        mapButton = findViewById(R.id.mapButton);
+        manageButton = findViewById(R.id.manageButton);
+        mapButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "onClick: of mapButton bottom");
+                int position = viewPager2.getCurrentItem();
+                if(nicknames.size()==0)
+                {
+                    position=-1;
+                }
+                Log.d(TAG, "////////onClick: "+position);
 
+                Intent intent = new Intent(MainActivity.this, MapActivity.class);
+                intent.putExtra("name",nicknames.get(position));
+                startActivity(intent);
+            }
+        });
+
+        manageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "onClick: of manager button bottom");
+                int position = viewPager2.getCurrentItem();
+                if(nicknames.size()==0)
+                {
+                    position=-1;
+                }
+                Log.d(TAG, "////////onClick: "+position);
+                Intent intent = new Intent(MainActivity.this, ManagementActivity.class);
+                intent.putExtra("name",nicknames.get(position));
+                startActivity(intent);
+            }
+        });
         btnToggle = findViewById(R.id.btnToggle);
         btnToggle.setOnClickListener(new View.OnClickListener(){
             @Override
