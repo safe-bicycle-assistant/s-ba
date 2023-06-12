@@ -57,10 +57,12 @@ public class RidingLogFragment extends Fragment {
             case R.id.ViewAll: {
                 Cursor ridingCursor =ridingDatabaseHelper.getAllDataToCursor(bicycleName);
                 listView.setAdapter(new RidingLogAdapter(getContext(), ridingCursor, true));
-                ridingCursor.moveToFirst();
+                boolean check = ridingCursor.moveToFirst();
                 int totalDistance = 0;
                 do
                 {
+                    if(check == false)
+                        break;
                     totalDistance += ridingCursor.getInt(RidingDB.LENGTH);
                     TextView tv = getView().findViewById(R.id.totalDistanceTextView);
                     tv.setText(""+totalDistance+" km");
@@ -81,9 +83,11 @@ public class RidingLogFragment extends Fragment {
             }
             case R.id.ViewAfterLatestManagement: {
                 Cursor cursor = managementDatabaseHelper.getAllDataToCursor(bicycleName);
-                cursor.moveToFirst();
+                boolean check = cursor.moveToFirst();
                 do
                 {
+                    if(check == false)
+                        break;
                     int fixedBit = cursor.getInt(ManagementDB.CHANGE);
                     if((fixedBit & ManagementDB.TYRES) != 0)
                     {
@@ -103,7 +107,8 @@ public class RidingLogFragment extends Fragment {
                 //no tyre replacement
                 Cursor ridingCursor =ridingDatabaseHelper.getAllDataToCursor(bicycleName);
                 listView.setAdapter(new RidingLogAdapter(getContext(), ridingCursor, true));
-                ridingCursor.moveToFirst();
+                if (ridingCursor.moveToFirst() == false)
+                    return false;
                 int totalDistance = 0;
                 do
                 {
@@ -132,10 +137,12 @@ public class RidingLogFragment extends Fragment {
 
         Cursor ridingCursor =ridingDatabaseHelper.getAllDataToCursor(bicycleName);
         listView.setAdapter(new RidingLogAdapter(getContext(), ridingCursor, true));
-        ridingCursor.moveToFirst();
+        boolean check = ridingCursor.moveToFirst();
         int totalDistance = 0;
         do
         {
+            if(check == false)
+                break;
             totalDistance += ridingCursor.getInt(RidingDB.LENGTH);
             TextView tv = getView().findViewById(R.id.totalDistanceTextView);
             tv.setText(""+totalDistance+" km");
