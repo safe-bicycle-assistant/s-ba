@@ -9,14 +9,15 @@ import androidx.fragment.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.safe_bicycle_assistant.s_ba.R;
 
 public class MenuFragment extends Fragment {
-    ImageView managementView;
-    ImageView ridingView;
+    Button managementView;
+    Button ridingView;
     String bicycleName;
     public MenuFragment(String bicycleName){
         this.bicycleName = bicycleName;
@@ -26,8 +27,6 @@ public class MenuFragment extends Fragment {
         super.onStart();
         managementView = getView().findViewById(R.id.managementView);
         ridingView = getView().findViewById(R.id.ridingView);
-        managementView.setImageResource(R.drawable.management_icon);
-        ridingView.setImageResource(R.drawable.riding_icon);
         managementView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

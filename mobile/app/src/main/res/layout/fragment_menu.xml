@@ -5,21 +5,31 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingTop="16dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="16dp"
+    android:layout_gravity="center"
+    android:gravity="center"
     tools:context=".log_fragments.MenuFragment">
 
-    <ImageView
-        android:id="@+id/managementView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        tools:src="@drawable/management_icon"
-        android:background="@color/white"/>
+        <Button
+            android:id="@+id/managementView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_pattern"
+            android:text="Management"
+            android:textSize="15dp"
+            android:textStyle="bold" />
 
-    <ImageView
-        android:id="@+id/ridingView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        tools:src="@drawable/riding_icon"
-        android:background="@color/white"/>
+        <Button
+            android:id="@+id/ridingView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_pattern"
+            android:text="Riding"
+            android:textSize="15dp"
+            android:layout_marginTop="15dp"
+            android:textStyle="bold"/>
+
 </LinearLayout>
