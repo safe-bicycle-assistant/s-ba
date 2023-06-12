@@ -44,7 +44,7 @@ public class RidingDB extends SQLiteOpenHelper {
 //(time BIGINT, length INT, maxSpeed DECIMAL(4,2), maxCadence DECIMAL(4,2), map TEXT , averageSpeed DECIMAL(4,2), averageCadence DECIMAL(4,2))
     public void insert(long time, int length, double avgSpeed, double avgCadence, String map, double maxSpeed, double maxCadence,String bicyclename) {
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL(String.format("INSERT INTO %s(time, length, averageSpeed, averageCadence,maxSpeed,maxCadence,map) VALUES('%d','%d','%f','%f','%f','%f','%s','%s')",TABLE_NAME,time,length,avgSpeed,avgCadence,maxSpeed,maxCadence,map,bicyclename));
+        db.execSQL(String.format("INSERT INTO %s(time, length, averageSpeed, averageCadence,maxSpeed,maxCadence,map, bicyclename) VALUES('%d','%d','%f','%f','%f','%f','%s','%s')",TABLE_NAME,time,length,avgSpeed,avgCadence,maxSpeed,maxCadence,map,bicyclename));
         db.close();
     }
     public Cursor getAllDataToCursor(String bicyclename) {

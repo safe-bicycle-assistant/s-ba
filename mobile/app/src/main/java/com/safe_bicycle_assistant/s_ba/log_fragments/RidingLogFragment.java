@@ -82,7 +82,7 @@ public class RidingLogFragment extends Fragment {
             case R.id.ViewAfterLatestManagement: {
                 Cursor cursor = managementDatabaseHelper.getAllDataToCursor(bicycleName);
                 cursor.moveToFirst();
-                while(cursor.moveToNext())
+                do
                 {
                     int fixedBit = cursor.getInt(ManagementDB.CHANGE);
                     if((fixedBit & ManagementDB.TYRES) != 0)
@@ -99,7 +99,7 @@ public class RidingLogFragment extends Fragment {
                         }
                         return true;
                     }
-                }
+                }while(cursor.moveToNext());
                 //no tyre replacement
                 Cursor ridingCursor =ridingDatabaseHelper.getAllDataToCursor(bicycleName);
                 listView.setAdapter(new RidingLogAdapter(getContext(), ridingCursor, true));
