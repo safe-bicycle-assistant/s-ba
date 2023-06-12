@@ -55,12 +55,12 @@ public class RidingLogFragment extends Fragment {
                 listView.setAdapter(new RidingLogAdapter(getContext(), ridingCursor, true));
                 ridingCursor.moveToFirst();
                 int totalDistance = 0;
-                while(ridingCursor.moveToNext())
+                do
                 {
                     totalDistance += ridingCursor.getInt(RidingDB.LENGTH);
                     TextView tv = getView().findViewById(R.id.totalDistanceTextView);
                     tv.setText(""+totalDistance+" km");
-                }
+                }while(ridingCursor.moveToNext());
 //                listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 //                    @Override
 //                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -78,7 +78,7 @@ public class RidingLogFragment extends Fragment {
             case R.id.ViewAfterLatestManagement: {
                 Cursor cursor = managementDatabaseHelper.getAllDataToCursor();
                 cursor.moveToFirst();
-                while(cursor.moveToNext())
+                do
                 {
                     int fixedBit = cursor.getInt(ManagementDB.CHANGE);
                     if((fixedBit & ManagementDB.TYRES) != 0)
@@ -95,18 +95,18 @@ public class RidingLogFragment extends Fragment {
                         }
                         return true;
                     }
-                }
+                }while(cursor.moveToNext());
                 //no tyre replacement
                 Cursor ridingCursor =ridingDatabaseHelper.getAllDataToCursor();
                 listView.setAdapter(new RidingLogAdapter(getContext(), ridingCursor, true));
                 ridingCursor.moveToFirst();
                 int totalDistance = 0;
-                while(ridingCursor.moveToNext())
+                do
                 {
                     totalDistance += ridingCursor.getInt(RidingDB.LENGTH);
                     TextView tv = getView().findViewById(R.id.totalDistanceTextView);
                     tv.setText(""+totalDistance+" km");
-                }
+                }while(ridingCursor.moveToNext());
                 return false;
             }
 
@@ -130,12 +130,12 @@ public class RidingLogFragment extends Fragment {
         listView.setAdapter(new RidingLogAdapter(getContext(), ridingCursor, true));
         ridingCursor.moveToFirst();
         int totalDistance = 0;
-        while(ridingCursor.moveToNext())
+        do
         {
             totalDistance += ridingCursor.getInt(RidingDB.LENGTH);
             TextView tv = getView().findViewById(R.id.totalDistanceTextView);
             tv.setText(""+totalDistance+" km");
-        }
+        }while(ridingCursor.moveToNext());
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
