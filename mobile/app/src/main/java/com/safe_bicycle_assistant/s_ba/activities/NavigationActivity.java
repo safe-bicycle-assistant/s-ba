@@ -155,6 +155,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
 
         this.imageWarning = findViewById(R.id.imageWarning);
         this.textCadence = findViewById(R.id.textCadence);
+        this.pointPassed.add(this.gson.toJson(this.mapManager.from));
         TextView textSpeed = findViewById(R.id.textSpeed);
         LocationListener listener = location -> {
             GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
@@ -235,6 +236,13 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     }
 
     private void stopDriving() {
+        if (this.lengthPassed < 1) {
+            this.meanSpeed = 0;
+            this.maxSpeed = 0;
+            this.meanCadence = 0;
+            this.maxCadence = 0;
+        }
+
         try {
             Log.d(TAG, "stopDriving: ");
             RidingDB dbhelper = new RidingDB(this, 1);
@@ -250,7 +258,7 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         new MaterialAlertDialogBuilder(this)
                 .setTitle("라이딩 끝!")
                 .setMessage(
-                        "주행 거리: " + String.format("%.1f", this.lengthPassed) + "m\n" +
+                        "주행 거리: " + meterToText(this.lengthPassed) + "\n" +
                         "평균 속력: " + String.format("%.1f", this.meanSpeed) + "km/h\n" +
                         "최고 속력: " + String.format("%.1f", this.maxSpeed) + "km/h\n" +
                         "평균 케이던스: " + String.format("%.1f", this.meanCadence) + "RPM\n" +
@@ -258,6 +266,13 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
                 )
                 .setPositiveButton("확인", (d, w) -> this.finish())
                 .show();
+    }
+
+    private String meterToText(float meter) {
+        if (meter >= 1000) {
+            return String.format("%.1f", meter / 1000.f) + "km";
+        }
+        return String.format("%.1f", meter) + "m";
     }
 
     private String secToText(int sec) {

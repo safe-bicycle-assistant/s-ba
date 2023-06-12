@@ -12,9 +12,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
@@ -22,10 +19,10 @@ import com.google.gson.reflect.TypeToken;
 import com.safe_bicycle_assistant.s_ba.R;
 import com.safe_bicycle_assistant.s_ba.Utils;
 import com.safe_bicycle_assistant.s_ba.db_helpers.RidingDB;
-import com.safe_bicycle_assistant.s_ba.uis.RidingLogAdapter;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
@@ -80,42 +77,77 @@ public class RidingLogDetailsFragment extends Fragment {
         else
         {
             drawRoute(gson.fromJson(c.getString(RidingDB.MAP), new TypeToken<ArrayList<String>>(){}.getType()));
-            timeView.setText(""+Utils.DateToString( Utils.longToDate(c.getLong(0))));
-            distanceView.setText(""+c.getInt(RidingDB.LENGTH)+" km");
-            maxSpeedView.setText(""+c.getDouble(RidingDB.MAX_SPEED)+" km/h");
-            avgSpeedView.setText(""+c.getDouble(RidingDB.AVERAGE_SPEED)+" km/h");
-            avgCadenceView.setText(""+c.getDouble(RidingDB.AVERAGE_CADENCE)+" rpm");
-            maxCadenceView.setText(""+c.getDouble(RidingDB.MAX_CADENCE)+" rpm");
+            timeView.setText(Utils.DateToString( Utils.longToDate(c.getLong(0))));
+            distanceView.setText(meterToText(c.getInt(RidingDB.LENGTH)));
+            maxSpeedView.setText(String.format("%.1f", c.getDouble(RidingDB.MAX_SPEED)) + "km/h");
+            avgSpeedView.setText(String.format("%.1f", c.getDouble(RidingDB.AVERAGE_SPEED)) + "km/h");
+            avgCadenceView.setText(String.format("%.1f", c.getDouble(RidingDB.AVERAGE_CADENCE)) + "RPM");
+            maxCadenceView.setText(String.format("%.1f", c.getDouble(RidingDB.MAX_CADENCE)) + "RPM");
         }
     }
 
     private void drawRoute(ArrayList<String> pathJson) {
-        if (pathJson.size() > 1) {
+        try {
             mapView.setTileSource(TileSourceFactory.MAPNIK);
             mapView.setMultiTouchControls(true);
 
-            GeoPoint firstPoint = gson.fromJson(pathJson.get(0), GeoPoint.class);
-            GeoPoint lastPoint = gson.fromJson(pathJson.get(pathJson.size() - 1), GeoPoint.class);
-            mapView.getOverlays().addAll(
-                    Arrays.asList(
-                            getBasicMarker("from", R.drawable.marker_green, firstPoint),
-                            getBasicMarker("to", R.drawable.marker_red, lastPoint)
-                    )
-            );
+            if (pathJson.size() > 1) {
+                GeoPoint firstPoint = gson.fromJson(pathJson.get(0), GeoPoint.class);
+                GeoPoint lastPoint = gson.fromJson(pathJson.get(pathJson.size() - 1), GeoPoint.class);
+                mapView.getOverlays().addAll(
+                        Arrays.asList(
+                                getBasicMarker("from", R.drawable.marker_green, firstPoint),
+                                getBasicMarker("to", R.drawable.marker_red, lastPoint)
+                        )
+                );
 
-            Polyline line = new Polyline(mapView);
-            for (String json : pathJson) line.addPoint(gson.fromJson(json, GeoPoint.class));
-            line.getOutlinePaint().setStrokeWidth(20.f);
-            line.getOutlinePaint().setARGB(255, 0, 139, 236);
-            line.getOutlinePaint().setStrokeCap(Paint.Cap.ROUND);
-            mapView.getOverlays().add(line);
+                Polyline line = new Polyline(mapView);
+                for (String json : pathJson) line.addPoint(gson.fromJson(json, GeoPoint.class));
+                line.getOutlinePaint().setStrokeWidth(20.f);
+                line.getOutlinePaint().setARGB(255, 0, 139, 236);
+                line.getOutlinePaint().setStrokeCap(Paint.Cap.ROUND);
+                mapView.getOverlays().add(line);
 
-            IMapController mapController = mapView.getController();
-            mapController.setCenter(firstPoint);
-            mapController.setZoom(15.0);
-//            mapView.zoomToBoundingBox(line.getBounds(), false);
+                mapView.addOnFirstLayoutListener((View v, int l, int t, int r, int b) -> {
+                    mapView.zoomToBoundingBox(applyOffsets(line.getBounds()), false);
+                    mapView.invalidate();
+                });
+
+            } else {
+                GeoPoint firstPoint = gson.fromJson(pathJson.get(0), GeoPoint.class);
+                mapView.getOverlays().add(
+                        getBasicMarker("from", R.drawable.marker_green, firstPoint)
+                );
+                IMapController mapController = mapView.getController();
+                mapController.setCenter(firstPoint);
+                mapController.setZoom(15.0);
+            }
+
             mapView.invalidate();
+        } catch (Exception ignored) {
+            // Do nothing
         }
+    }
+
+    private BoundingBox applyOffsets(BoundingBox box) {
+        double northOffset = 0.002;
+        double eastOffset = 0.001;
+        double southOffset = 0.001;
+        double westOffset = 0.001;
+
+        return new BoundingBox(
+                box.getActualNorth() + northOffset,
+                box.getLonEast() + eastOffset,
+                box.getActualSouth() - southOffset,
+                box.getLonWest() - westOffset
+        );
+    }
+
+    private String meterToText(float meter) {
+        if (meter >= 1000) {
+            return String.format("%.1f", meter / 1000.f) + "km";
+        }
+        return String.format("%.1f", meter) + "m";
     }
 
     private Marker getBasicMarker(String id, int icon, GeoPoint point) {
