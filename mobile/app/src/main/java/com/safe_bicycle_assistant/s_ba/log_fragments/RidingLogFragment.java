@@ -94,14 +94,21 @@ public class RidingLogFragment extends Fragment {
                     {
                         Cursor ridingCursor = ridingDatabaseHelper.getAllDataAfterTime(cursor.getLong(ManagementDB.TIME));
                         listView.setAdapter(new RidingLogAdapter(getContext(), ridingCursor, true));
-                        ridingCursor.moveToFirst();
+                        boolean check1 = ridingCursor.moveToFirst();
                         float totalDistance = 0;
-                        while(ridingCursor.moveToNext())
+                        do
                         {
-                            totalDistance += Float.parseFloat (Utils.meterToText( ridingCursor.getFloat(RidingDB.LENGTH)));
+
+
+
                             TextView tv = getView().findViewById(R.id.totalDistanceTextView);
+                            if(check1 == false) {
+                                tv.setText("0 km");
+                                break;
+                            }
+                            totalDistance += Float.parseFloat (Utils.meterToText( ridingCursor.getFloat(RidingDB.LENGTH)));
                             tv.setText(""+totalDistance+" km");
-                        }
+                        }while(ridingCursor.moveToNext());
                         return true;
                     }
                 }while(cursor.moveToNext());
