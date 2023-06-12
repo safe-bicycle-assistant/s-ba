@@ -34,6 +34,9 @@ typedef struct data{
     
 }Data;
 
+
+int lock = 0;
+
 int* sock;
 int main(void)
 {
@@ -168,6 +171,8 @@ void* write_thd(void* data)
     char msg[100];
 	while(1)
 	{
+		while(lock == 0);
+		lock = 0;
         float cadencebit = datas->cadence;
         int detectionbit = datas->detection;
         char buffer[100] = {0,};
@@ -181,7 +186,7 @@ void* write_thd(void* data)
         buffer[6] = *((int*)(&detectionbit)) >> 8;
         buffer[5] = *((int*)(&detectionbit)) >> 16;
         buffer[4] = *((int*)(&detectionbit)) >> 24;
-		sleep(0.9);
+		//sleep(0.05);
 			//send
             // send(*sock,&cadencebit,sizeof(cadencebit),0);
             // send(*sock,&detectionbit,sizeof(detectionbit),0);
@@ -225,6 +230,7 @@ void* read_thd(void* data)
         y = atoi(tok);
         printf("C received %d, %d\n", x,y);
         datas->detection = ((x/10)*1000) + (y/10);
+		lock = 1;
     }
         
 
