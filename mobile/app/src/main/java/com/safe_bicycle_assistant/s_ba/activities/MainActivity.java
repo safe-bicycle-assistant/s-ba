@@ -74,9 +74,17 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                     position=-1;
                 }
                 Log.d(TAG, "////////onClick: "+position);
-                Intent intent = new Intent(MainActivity.this, MapActivity.class);
-                intent.putExtra("name",nicknames.get(position));
-                startActivity(intent);
+                if(position == -1)
+                {
+                    Toast.makeText(MainActivity.this, "자전거를 먼저 추가한 후 다시 시도하세요", Toast.LENGTH_SHORT).show();
+                }
+                else
+                {
+                    Intent intent = new Intent(MainActivity.this, MapActivity.class);
+                    intent.putExtra("name",nicknames.get(position));
+                    startActivity(intent);
+                }
+
             }
         });
 
@@ -89,10 +97,18 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                 {
                     position=-1;
                 }
-                Log.d(TAG, "////////onClick: "+position);
-                Intent intent = new Intent(MainActivity.this, ManagementActivity.class);
-                intent.putExtra("name",nicknames.get(position));
-                startActivity(intent);
+                if(position == -1)
+                {
+                    Toast.makeText(MainActivity.this, "자전거를 먼저 추가한 후 다시 시도하세요", Toast.LENGTH_SHORT).show();
+                }
+                else
+                {
+                    Log.d(TAG, "////////onClick: "+position);
+                    Intent intent = new Intent(MainActivity.this, ManagementActivity.class);
+                    intent.putExtra("name",nicknames.get(position));
+                    startActivity(intent);
+                }
+
             }
         });
 
@@ -311,10 +327,17 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                     position=-1;
                 }
                 Log.d(TAG, "////////onClick: "+position);
-
-                Intent intent = new Intent(MainActivity.this, MapActivity.class);
-                intent.putExtra("name",nicknames.get(position));
-                startActivity(intent);
+                if(position == -1)
+                {
+                    Toast.makeText(MainActivity.this, "자전거를 먼저 추가한 후 다시 시도하세요", Toast.LENGTH_SHORT).show();
+                }
+                else
+                {
+                    Log.d(TAG, "////////onClick: "+position);
+                    Intent intent = new Intent(MainActivity.this, MapActivity.class);
+                    intent.putExtra("name",nicknames.get(position));
+                    startActivity(intent);
+                }
             }
         });
 
@@ -327,10 +350,17 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                 {
                     position=-1;
                 }
-                Log.d(TAG, "////////onClick: "+position);
-                Intent intent = new Intent(MainActivity.this, ManagementActivity.class);
-                intent.putExtra("name",nicknames.get(position));
-                startActivity(intent);
+                if(position == -1)
+                {
+                    Toast.makeText(MainActivity.this, "자전거를 먼저 추가한 후 다시 시도하세요", Toast.LENGTH_SHORT).show();
+                }
+                else
+                {
+                    Log.d(TAG, "////////onClick: "+position);
+                    Intent intent = new Intent(MainActivity.this, ManagementActivity.class);
+                    intent.putExtra("name",nicknames.get(position));
+                    startActivity(intent);
+                }
             }
         });
         btnToggle = findViewById(R.id.btnToggle);
