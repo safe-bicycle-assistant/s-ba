@@ -29,10 +29,10 @@ public class ManagementLogAddFragment extends DialogFragment {
     DatePicker datePicker;
     Button addButton;
     TimePicker timePicker;
+    String bicycleName;
 
-
-    public ManagementLogAddFragment() {
-        // Required empty public constructor
+    public ManagementLogAddFragment(String bicycleName) {
+        this.bicycleName = bicycleName;
     }
 
 
@@ -102,10 +102,10 @@ public class ManagementLogAddFragment extends DialogFragment {
                     fixBit = fixBit | ManagementDB.TYRES;
                 ManagementDB managementDB = new ManagementDB(getContext(),1);
 
-                managementDB.insert(millis,fixBit);
+                managementDB.insert(millis,fixBit,bicycleName);
                 FragmentManager fm = getActivity().getSupportFragmentManager();
 //                fm.beginTransaction().remove(ManagementLogAddFragment.this).commit();
-                fm.beginTransaction().replace(R.id.fragment_container,new ManagementLogFragment()).commit();
+                fm.beginTransaction().replace(R.id.fragment_container,new ManagementLogFragment(bicycleName)).commit();
             }
         });
     }

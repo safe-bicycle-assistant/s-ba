@@ -17,10 +17,11 @@ public class RidingDB extends SQLiteOpenHelper {
     public final static int LENGTH = 1;
     public final static int AVERAGE_SPEED = 5;
     public final static int AVERAGE_CADENCE = 6;
+    public final static int BICYCLE_NAME = 7;
     public final static int MAP = 4;
     public final static int MAX_SPEED = 2;
     public final static int MAX_CADENCE = 3;
-    static final String TABLE_FORMAT = "(time BIGINT, length INT, maxSpeed DECIMAL(4,2), maxCadence DECIMAL(4,2), map TEXT , averageSpeed DECIMAL(4,2), averageCadence DECIMAL(4,2))";
+    static final String TABLE_FORMAT = "(time BIGINT, length INT, maxSpeed DECIMAL(4,2), maxCadence DECIMAL(4,2), map TEXT , averageSpeed DECIMAL(4,2), averageCadence DECIMAL(4,2), bicyclename TEXT)";
     public RidingDB(Context context, int version) {
         super(context, DATABASE_NAME,null,version);
     }
@@ -41,24 +42,24 @@ public class RidingDB extends SQLiteOpenHelper {
         db.close();
     }
 //(time BIGINT, length INT, maxSpeed DECIMAL(4,2), maxCadence DECIMAL(4,2), map TEXT , averageSpeed DECIMAL(4,2), averageCadence DECIMAL(4,2))
-    public void insert(long time, int length, double avgSpeed, double avgCadence, String map, double maxSpeed, double maxCadence) {
+    public void insert(long time, int length, double avgSpeed, double avgCadence, String map, double maxSpeed, double maxCadence,String bicyclename) {
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL(String.format("INSERT INTO %s(time, length, averageSpeed, averageCadence,maxSpeed,maxCadence,map) VALUES('%d','%d','%f','%f','%f','%f','%s')",TABLE_NAME,time,length,avgSpeed,avgCadence,maxSpeed,maxCadence,map));
+        db.execSQL(String.format("INSERT INTO %s(time, length, averageSpeed, averageCadence,maxSpeed,maxCadence,map, bicyclename) VALUES('%d','%d','%f','%f','%f','%f','%s','%s')",TABLE_NAME,time,length,avgSpeed,avgCadence,maxSpeed,maxCadence,map,bicyclename));
         db.close();
     }
-    public Cursor getAllDataToCursor() {
-        String query = "select *,1 _id from "+ TABLE_NAME+" order by time desc";
+    public Cursor getAllDataToCursor(String bicyclename) {
+        String query = "select *,1 _id from "+ TABLE_NAME+ " where bicyclename = '" + bicyclename +"' order by time desc";
         SQLiteDatabase db = getWritableDatabase();
         Cursor c = db.rawQuery(query,null);
         return c;
     }
-    public Cursor getDataByIndex(int i) {
+    public Cursor getDataByIndex(int i,String bicyclename) {
 //        String query = "select * from "+TABLE_NAME+" limit 1 offset "+i;
 //        SQLiteDatabase db = getWritableDatabase();
 //        Cursor c = db.rawQuery(query,null);
 //        return c;
 
-        String query = "select *,1 _id from "+ TABLE_NAME+" order by time desc";
+        String query = "select *,1 _id from "+ TABLE_NAME+ " where bicyclename = '" + bicyclename +"' order by time desc";
         SQLiteDatabase db = getWritableDatabase();
         Cursor c = db.rawQuery(query,null);
         c.moveToFirst();

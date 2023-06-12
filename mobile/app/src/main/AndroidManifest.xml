@@ -24,18 +24,19 @@
             android:enabled="true"
             android:exported="true"></service>
         <activity
-            android:name=".activities.TestActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.ManagementActivity"
-            android:exported="false" />
-        <activity
+            android:name=".activities.IntroActivity"
+            android:exported="true"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
-            android:name=".activities.MapActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.NavigationActivity"
-            android:exported="false" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
         <activity
             android:name=".activities.MainActivity"
             android:exported="true">
@@ -45,6 +46,23 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".activities.SetActivity"/>
+        <activity
+            android:name=".activities.TestActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.ManagementActivity"
+            android:exported="false" />
+        <activity
+
+            android:name=".activities.MapActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.NavigationActivity"
+            android:exported="false" />
+
+
     </application>
 
 </manifest>

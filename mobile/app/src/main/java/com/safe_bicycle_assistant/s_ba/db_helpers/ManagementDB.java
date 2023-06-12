@@ -17,9 +17,10 @@ public class ManagementDB extends SQLiteOpenHelper {
     public static final int ALL = 7;
     public static final int TIME = 0;
     public static final int CHANGE = 1;
+    public final static int BICYCLE_NAME = 2;
     static final String DATABASE_NAME = "s-ba";
     public static final String TABLE_NAME = "ManagementLog";
-    static final String TABLE_FORMAT = "(time BIGINT, change INT)";
+    static final String TABLE_FORMAT = "(time BIGINT, change INT, bicyclename TEXT)";
     public ManagementDB(Context context, int version) {
         super(context, DATABASE_NAME,null,version);
     }
@@ -34,27 +35,27 @@ public class ManagementDB extends SQLiteOpenHelper {
         onCreate(sqLiteDatabase);
     }
 
-    public void insert(long time, int changedItems) {
+    public void insert(long time, int changedItems, String bicyclename) {
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL(String.format("INSERT INTO %s VALUES('%d','%d')",TABLE_NAME,time,changedItems));
+        db.execSQL(String.format("INSERT INTO %s VALUES('%d','%d','%s')",TABLE_NAME,time,changedItems,bicyclename));
         db.close();
 
     }
 
-    public Cursor getAllDataToCursor() {
-        String query = "select *,1 _id from "+ TABLE_NAME +" order by time desc";
+    public Cursor getAllDataToCursor(String bicyclename) {
+        String query = "select *,1 _id from "+ TABLE_NAME + " where bicyclename = '" + bicyclename +"' order by time desc";
         SQLiteDatabase db = getWritableDatabase();
         Cursor c = db.rawQuery(query,null);
         return c;
     }
 
-    public Cursor getDataByIndex(int i) {
+    public Cursor getDataByIndex(int i, String bicyclename) {
 //        String query = "select * from "+TABLE_NAME+" limit 1 offset "+i;
 //        SQLiteDatabase db = getWritableDatabase();
 //        Cursor c = db.rawQuery(query,null);
 //        return c;
 
-        String query = "select *,1 _id from "+ TABLE_NAME+" order by time desc";
+        String query = "select *,1 _id from "+ TABLE_NAME+ " where bicyclename = '" + bicyclename +"' order by time desc";
         SQLiteDatabase db = getWritableDatabase();
         Cursor c = db.rawQuery(query,null);
         c.moveToFirst();

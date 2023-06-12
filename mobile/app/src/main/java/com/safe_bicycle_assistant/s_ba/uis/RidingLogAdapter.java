@@ -41,7 +41,14 @@ public class RidingLogAdapter extends CursorAdapter {
         TextView lengthTextView = view.findViewById(R.id.riding_log_listview_length);
         TextView avgSpeedTextView = view.findViewById(R.id.riding_log_listview_avgspeed);
         timeTextView.setText("Workout Time : "+ Utils.DateToString(Utils.longToDate(time_millis)));
-        lengthTextView.setText("Riding Length : " + length + "km");
-        avgSpeedTextView.setText("Average Speed : " + avgSpeed+"km/h");
+        lengthTextView.setText("Riding Length : " + meterToText(length));
+        avgSpeedTextView.setText("Average Speed : " + String.format("%.1f", avgSpeed)+"km/h");
+    }
+
+    private String meterToText(float meter) {
+        if (meter >= 1000) {
+            return String.format("%.1f", meter / 1000.f) + "km";
+        }
+        return String.format("%.1f", meter) + "m";
     }
 }

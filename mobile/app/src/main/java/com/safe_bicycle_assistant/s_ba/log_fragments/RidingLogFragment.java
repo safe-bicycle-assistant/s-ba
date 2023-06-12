@@ -37,7 +37,11 @@ public class RidingLogFragment extends Fragment {
     static ManagementDB managementDatabaseHelper;
     SQLiteDatabase Managementdb;
     ListView listView;
+    String bicycleName;
 
+    public RidingLogFragment(String bicycleName) {
+        this.bicycleName = bicycleName;
+    }
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         inflater.inflate(R.menu.riding_log_fragment_menu,menu);
@@ -51,7 +55,7 @@ public class RidingLogFragment extends Fragment {
         managementDatabaseHelper.onCreate(Managementdb);
         switch(item.getItemId()) {
             case R.id.ViewAll: {
-                Cursor ridingCursor =ridingDatabaseHelper.getAllDataToCursor();
+                Cursor ridingCursor =ridingDatabaseHelper.getAllDataToCursor(bicycleName);
                 listView.setAdapter(new RidingLogAdapter(getContext(), ridingCursor, true));
                 ridingCursor.moveToFirst();
                 int totalDistance = 0;
@@ -76,7 +80,7 @@ public class RidingLogFragment extends Fragment {
                 return true;
             }
             case R.id.ViewAfterLatestManagement: {
-                Cursor cursor = managementDatabaseHelper.getAllDataToCursor();
+                Cursor cursor = managementDatabaseHelper.getAllDataToCursor(bicycleName);
                 cursor.moveToFirst();
                 do
                 {
@@ -97,7 +101,7 @@ public class RidingLogFragment extends Fragment {
                     }
                 }while(cursor.moveToNext());
                 //no tyre replacement
-                Cursor ridingCursor =ridingDatabaseHelper.getAllDataToCursor();
+                Cursor ridingCursor =ridingDatabaseHelper.getAllDataToCursor(bicycleName);
                 listView.setAdapter(new RidingLogAdapter(getContext(), ridingCursor, true));
                 ridingCursor.moveToFirst();
                 int totalDistance = 0;
@@ -126,7 +130,7 @@ public class RidingLogFragment extends Fragment {
 //        for(int i = 0; i< 10; i++)
 //            ridingDatabaseHelper.insert(System.currentTimeMillis(),i+1,30.34,90.04,"HI",34.03,100.4);
 
-        Cursor ridingCursor =ridingDatabaseHelper.getAllDataToCursor();
+        Cursor ridingCursor =ridingDatabaseHelper.getAllDataToCursor(bicycleName);
         listView.setAdapter(new RidingLogAdapter(getContext(), ridingCursor, true));
         ridingCursor.moveToFirst();
         int totalDistance = 0;
@@ -140,7 +144,7 @@ public class RidingLogFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Log.d(TAG, "onItemClick: "+i+l);
-                RidingLogDetailsFragment ridingLogFragment = new RidingLogDetailsFragment(i);
+                RidingLogDetailsFragment ridingLogFragment = new RidingLogDetailsFragment(i,bicycleName);
 //                FrameLayout container = getView().findViewById(R.id.fragment_container);
                 FragmentManager manager = getActivity().getSupportFragmentManager();
                 FragmentTransaction ft = manager.beginTransaction();

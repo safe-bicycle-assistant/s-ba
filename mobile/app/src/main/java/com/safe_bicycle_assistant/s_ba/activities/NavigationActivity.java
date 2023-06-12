@@ -17,6 +17,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 import android.widget.Button;
@@ -51,7 +52,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NavigationActivity extends AppCompatActivity implements SensorEventListener {
-
+    private final String TAG = "NavigationActivity";
     private MapView map;
     private MapManager mapManager;
     private IMapController mapController;
@@ -62,12 +63,14 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     private boolean hasMagSensor = false;
     private final float[] accelerometers = new float[3];
     private final float[] magnetics = new float[3];
+    private float orientation = 0.0f;
 
     private float lengthPassed = 0;
     private float meanSpeed = 0;
     private float meanCadence = 0;
     private float maxSpeed = 0;
     private float maxCadence = 0;
+    private String bicycleName;
 
     private final List<String> pointPassed = new ArrayList<>();
 
@@ -147,11 +150,12 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
         this.mapManager.from = getIntent().getParcelableExtra("from");
         this.mapManager.to = getIntent().getParcelableExtra("to");
         this.mapManager.road = getIntent().getParcelableExtra("road");
-
+        this.bicycleName = getIntent().getStringExtra("name");
         this.mapController = this.map.getController();
 
         this.imageWarning = findViewById(R.id.imageWarning);
         this.textCadence = findViewById(R.id.textCadence);
+        this.pointPassed.add(this.gson.toJson(this.mapManager.from));
         TextView textSpeed = findViewById(R.id.textSpeed);
         LocationListener listener = location -> {
             GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
@@ -232,19 +236,29 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
     }
 
     private void stopDriving() {
+        if (this.lengthPassed < 1) {
+            this.meanSpeed = 0;
+            this.maxSpeed = 0;
+            this.meanCadence = 0;
+            this.maxCadence = 0;
+        }
+
         try {
+            Log.d(TAG, "stopDriving: ");
             RidingDB dbhelper = new RidingDB(this, 1);
             String encoded = this.gson.toJson(this.pointPassed);
             dbhelper.insert(System.currentTimeMillis(), (int) this.lengthPassed,
-                    this.meanSpeed,this.meanCadence, encoded, this.maxSpeed, this.maxCadence);
+                    this.meanSpeed,this.meanCadence, encoded, this.maxSpeed, this.maxCadence,this.bicycleName);
         } catch (Exception ignored) {
+            ignored.printStackTrace();
+            Log.d(TAG, "stopDriving: Exception");
             // Do nothing
         }
 
         new MaterialAlertDialogBuilder(this)
                 .setTitle("라이딩 끝!")
                 .setMessage(
-                        "주행 거리: " + String.format("%.1f", this.lengthPassed) + "m\n" +
+                        "주행 거리: " + meterToText(this.lengthPassed) + "\n" +
                         "평균 속력: " + String.format("%.1f", this.meanSpeed) + "km/h\n" +
                         "최고 속력: " + String.format("%.1f", this.maxSpeed) + "km/h\n" +
                         "평균 케이던스: " + String.format("%.1f", this.meanCadence) + "RPM\n" +
@@ -252,6 +266,13 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
                 )
                 .setPositiveButton("확인", (d, w) -> this.finish())
                 .show();
+    }
+
+    private String meterToText(float meter) {
+        if (meter >= 1000) {
+            return String.format("%.1f", meter / 1000.f) + "km";
+        }
+        return String.format("%.1f", meter) + "m";
     }
 
     private String secToText(int sec) {
@@ -314,7 +335,13 @@ public class NavigationActivity extends AppCompatActivity implements SensorEvent
             float yaw = (float) Math.toDegrees(angles[0]);
             if (yaw < 0) yaw += 360;
 
-            this.mapController.animateTo(null, null, 200L, 360 - yaw);
+            final int ORIENTATION_THRESHOLD = 5;
+            float currentOrientation = this.orientation;
+            float newOrientation = 360 - yaw;
+            if (currentOrientation < 1 || Math.abs(currentOrientation - newOrientation) > ORIENTATION_THRESHOLD) {
+                this.mapController.animateTo(null, null, 200L, newOrientation);
+                this.orientation = newOrientation;
+            }
 
             hasAccSensor = false;
             hasMagSensor = false;
