@@ -22,6 +22,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.safe_bicycle_assistant.s_ba.R;
+import com.safe_bicycle_assistant.s_ba.Utils;
 import com.safe_bicycle_assistant.s_ba.db_helpers.ManagementDB;
 import com.safe_bicycle_assistant.s_ba.db_helpers.RidingDB;
 import com.safe_bicycle_assistant.s_ba.uis.ManagementLogAdapter;
@@ -58,12 +59,12 @@ public class RidingLogFragment extends Fragment {
                 Cursor ridingCursor =ridingDatabaseHelper.getAllDataToCursor(bicycleName);
                 listView.setAdapter(new RidingLogAdapter(getContext(), ridingCursor, true));
                 boolean check = ridingCursor.moveToFirst();
-                int totalDistance = 0;
+                float totalDistance = 0;
                 do
                 {
                     if(check == false)
                         break;
-                    totalDistance += ridingCursor.getInt(RidingDB.LENGTH);
+                    totalDistance += Float.parseFloat (Utils.meterToText( ridingCursor.getFloat(RidingDB.LENGTH)));
                     TextView tv = getView().findViewById(R.id.totalDistanceTextView);
                     tv.setText(""+totalDistance+" km");
                 }while(ridingCursor.moveToNext());
@@ -94,10 +95,10 @@ public class RidingLogFragment extends Fragment {
                         Cursor ridingCursor = ridingDatabaseHelper.getAllDataAfterTime(cursor.getLong(ManagementDB.TIME));
                         listView.setAdapter(new RidingLogAdapter(getContext(), ridingCursor, true));
                         ridingCursor.moveToFirst();
-                        int totalDistance = 0;
+                        float totalDistance = 0;
                         while(ridingCursor.moveToNext())
                         {
-                            totalDistance += ridingCursor.getInt(RidingDB.LENGTH);
+                            totalDistance += Float.parseFloat (Utils.meterToText( ridingCursor.getFloat(RidingDB.LENGTH)));
                             TextView tv = getView().findViewById(R.id.totalDistanceTextView);
                             tv.setText(""+totalDistance+" km");
                         }
@@ -109,10 +110,10 @@ public class RidingLogFragment extends Fragment {
                 listView.setAdapter(new RidingLogAdapter(getContext(), ridingCursor, true));
                 if (ridingCursor.moveToFirst() == false)
                     return false;
-                int totalDistance = 0;
+                float totalDistance = 0;
                 do
                 {
-                    totalDistance += ridingCursor.getInt(RidingDB.LENGTH);
+                    totalDistance += Float.parseFloat (Utils.meterToText( ridingCursor.getFloat(RidingDB.LENGTH)));
                     TextView tv = getView().findViewById(R.id.totalDistanceTextView);
                     tv.setText(""+totalDistance+" km");
                 }while(ridingCursor.moveToNext());
@@ -138,12 +139,12 @@ public class RidingLogFragment extends Fragment {
         Cursor ridingCursor =ridingDatabaseHelper.getAllDataToCursor(bicycleName);
         listView.setAdapter(new RidingLogAdapter(getContext(), ridingCursor, true));
         boolean check = ridingCursor.moveToFirst();
-        int totalDistance = 0;
+        float totalDistance = 0;
         do
         {
             if(check == false)
                 break;
-            totalDistance += ridingCursor.getInt(RidingDB.LENGTH);
+            totalDistance += Float.parseFloat (Utils.meterToText( ridingCursor.getFloat(RidingDB.LENGTH)));
             TextView tv = getView().findViewById(R.id.totalDistanceTextView);
             tv.setText(""+totalDistance+" km");
         }while(ridingCursor.moveToNext());

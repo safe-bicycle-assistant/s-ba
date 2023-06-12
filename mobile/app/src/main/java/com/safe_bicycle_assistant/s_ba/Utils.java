@@ -31,4 +31,10 @@ public class Utils {
         Bitmap bitmap = BitmapFactory.decodeByteArray(encodedBytes,0, encodedBytes.length);
         return bitmap;
     }
+    public static String meterToText(float meter) {
+        if (meter >= 1000) {
+            return String.format("%.1f", meter / 1000.f);
+        }
+        return String.format("%.1f", meter);
+    }
 }

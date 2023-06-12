@@ -59,10 +59,11 @@ public class ConnectionService extends Service {
 
     @Override
     public void onCreate() {
-//        this.ip = "210.107.198.220";
+        this.ip = "210.107.198.220";
 //        this.ip = "192.168.0.7";
-        this.ip = "192.168.33.195";
-        this.port = 33333;
+//        this.ip = "192.168.33.195";
+//        this.port = 13333;
+        this.port = 13334;
         networkThread = new Thread(new NetworkThreadRunnable(ip,port));
         networkThread.start();
     }

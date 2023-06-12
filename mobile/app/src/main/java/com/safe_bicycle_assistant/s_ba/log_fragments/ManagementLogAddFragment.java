@@ -5,6 +5,7 @@ import android.os.Bundle;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -105,7 +106,8 @@ public class ManagementLogAddFragment extends DialogFragment {
                 managementDB.insert(millis,fixBit,bicycleName);
                 FragmentManager fm = getActivity().getSupportFragmentManager();
 //                fm.beginTransaction().remove(ManagementLogAddFragment.this).commit();
-                fm.beginTransaction().replace(R.id.fragment_container,new ManagementLogFragment(bicycleName)).commit();
+                FragmentTransaction ft = fm.beginTransaction().replace(R.id.fragment_container,new ManagementLogFragment(bicycleName));
+                ft.commit();
             }
         });
     }
