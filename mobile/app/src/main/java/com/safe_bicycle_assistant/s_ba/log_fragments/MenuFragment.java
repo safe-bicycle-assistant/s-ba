@@ -17,6 +17,10 @@ import com.safe_bicycle_assistant.s_ba.R;
 public class MenuFragment extends Fragment {
     ImageView managementView;
     ImageView ridingView;
+    String bicycleName;
+    public MenuFragment(String bicycleName){
+        this.bicycleName = bicycleName;
+    }
     @Override
     public void onStart() {
         super.onStart();
@@ -27,7 +31,7 @@ public class MenuFragment extends Fragment {
         managementView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ManagementLogFragment managementLogFragment = new ManagementLogFragment();
+                ManagementLogFragment managementLogFragment = new ManagementLogFragment(bicycleName);
 //                FrameLayout container = getView().findViewById(R.id.fragment_container);
                 FragmentManager manager = getActivity().getSupportFragmentManager();
                 FragmentTransaction ft = manager.beginTransaction();
@@ -40,7 +44,7 @@ public class MenuFragment extends Fragment {
         ridingView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                RidingLogFragment ridingLogFragment = new RidingLogFragment();
+                RidingLogFragment ridingLogFragment = new RidingLogFragment(bicycleName);
 //                FrameLayout container = getView().findViewById(R.id.fragment_container);
                 FragmentManager manager = getActivity().getSupportFragmentManager();
                 FragmentTransaction ft = manager.beginTransaction();

@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import com.safe_bicycle_assistant.s_ba.R;
 import com.safe_bicycle_assistant.s_ba.Utils;
+import com.safe_bicycle_assistant.s_ba.db_helpers.RidingDB;
 
 public class RidingLogAdapter extends CursorAdapter {
     private Context mContext;
@@ -33,14 +34,21 @@ public class RidingLogAdapter extends CursorAdapter {
     }
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        long time_millis = cursor.getLong(0);
-        int length = cursor.getInt(1);
-        float avgSpeed = cursor.getFloat(2);
+        long time_millis = cursor.getLong(RidingDB.TIME);
+        int length = cursor.getInt(RidingDB.LENGTH);
+        double avgSpeed = cursor.getDouble(RidingDB.AVERAGE_SPEED);
         TextView timeTextView = view.findViewById(R.id.riding_log_listview_time);
         TextView lengthTextView = view.findViewById(R.id.riding_log_listview_length);
         TextView avgSpeedTextView = view.findViewById(R.id.riding_log_listview_avgspeed);
         timeTextView.setText("Workout Time : "+ Utils.DateToString(Utils.longToDate(time_millis)));
-        lengthTextView.setText("Riding Length : " + length + "km");
-        avgSpeedTextView.setText("Average Speed : " + avgSpeed+"km/h");
+        lengthTextView.setText("Riding Length : " + meterToText(length));
+        avgSpeedTextView.setText("Average Speed : " + String.format("%.1f", avgSpeed)+"km/h");
+    }
+
+    private String meterToText(float meter) {
+        if (meter >= 1000) {
+            return String.format("%.1f", meter / 1000.f) + "km";
+        }
+        return String.format("%.1f", meter) + "m";
     }
 }

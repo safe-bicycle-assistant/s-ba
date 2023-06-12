@@ -2,4 +2,19 @@
     <string name="app_name">S-BA</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="from">출발지</string>
+    <string name="to">목적지</string>
+    <string name="search_result">검색결과</string>
+    <string name="here">현위치</string>
+    <string name="start_driving">주행시작</string>
+    <string name="route">경로</string>
+    <string name="cancel">취소</string>
+    <string name="zero_kmh">0km/h</string>
+    <string name="stop_driving">주행종료</string>
+    <string name="zero_rpm">0RPM</string>
+    <string name="warning">warning</string>
+    <string name="map">지도</string>
+    <string name="management">관리</string>
+
 </resources>

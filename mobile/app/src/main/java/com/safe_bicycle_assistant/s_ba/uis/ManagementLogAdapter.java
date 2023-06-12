@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import com.safe_bicycle_assistant.s_ba.R;
 import com.safe_bicycle_assistant.s_ba.Utils;
+import com.safe_bicycle_assistant.s_ba.db_helpers.ManagementDB;
 
 public class ManagementLogAdapter extends CursorAdapter {
     private Context mContext;
@@ -38,7 +39,15 @@ public class ManagementLogAdapter extends CursorAdapter {
         TextView timeTextView = view.findViewById(R.id.management_log_listview_time);
         TextView numberTextView = view.findViewById(R.id.management_log_listview_num);
         timeTextView.setText("Management Time : "+ Utils.DateToString(Utils.longToDate(time_millis)));
-        int num = (fix_flag | 1) + ((fix_flag | 2)>>1) + ((fix_flag | 2)>>2) ;
+        int num = 0;
+        if ((fix_flag& ManagementDB.TYRES) != 0)
+            num++;
+
+        if ((fix_flag&ManagementDB.WHEELS) != 0)
+            num++;
+
+        if ((fix_flag&ManagementDB.BRAKES) != 0)
+            num++;
         numberTextView.setText("number of parts fixed : " + num);
     }
 }
