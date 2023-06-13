@@ -66,7 +66,7 @@ public class RidingLogFragment extends Fragment {
                         break;
                     totalDistance += Float.parseFloat (Utils.meterToText( ridingCursor.getFloat(RidingDB.LENGTH)));
                     TextView tv = getView().findViewById(R.id.totalDistanceTextView);
-                    tv.setText(""+totalDistance+" km");
+                    tv.setText( String.format("%.1f km",totalDistance));
                 }while(ridingCursor.moveToNext());
 //                listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 //                    @Override
@@ -107,7 +107,7 @@ public class RidingLogFragment extends Fragment {
                                 break;
                             }
                             totalDistance += Float.parseFloat (Utils.meterToText( ridingCursor.getFloat(RidingDB.LENGTH)));
-                            tv.setText(""+totalDistance+" km");
+                            tv.setText( String.format("%.1f km",totalDistance));
                         }while(ridingCursor.moveToNext());
                         return true;
                     }
@@ -122,7 +122,7 @@ public class RidingLogFragment extends Fragment {
                 {
                     totalDistance += Float.parseFloat (Utils.meterToText( ridingCursor.getFloat(RidingDB.LENGTH)));
                     TextView tv = getView().findViewById(R.id.totalDistanceTextView);
-                    tv.setText(""+totalDistance+" km");
+                    tv.setText( String.format("%.1f km",totalDistance));
                 }while(ridingCursor.moveToNext());
                 return false;
             }
@@ -153,7 +153,7 @@ public class RidingLogFragment extends Fragment {
                 break;
             totalDistance += Float.parseFloat (Utils.meterToText( ridingCursor.getFloat(RidingDB.LENGTH)));
             TextView tv = getView().findViewById(R.id.totalDistanceTextView);
-            tv.setText(""+totalDistance+" km");
+            tv.setText( String.format("%.1f km",totalDistance));
         }while(ridingCursor.moveToNext());
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
